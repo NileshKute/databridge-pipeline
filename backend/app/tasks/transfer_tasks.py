@@ -40,8 +40,9 @@ def execute_transfer_task(self, transfer_id: int) -> dict:
         if not transfer:
             return {"error": "Transfer not found"}
 
-        transfer.status = TransferStatus.IN_PROGRESS
-        transfer.started_at = datetime.now(timezone.utc)
+        transfer.status = TransferStatus.TRANSFERRING
+        transfer.transfer_started_at = datetime.now(timezone.utc)
+        transfer.transfer_method = settings.TRANSFER_METHOD
         db.commit()
 
         files: list[TransferFile] = (
@@ -49,79 +50,68 @@ def execute_transfer_task(self, transfer_id: int) -> dict:
         )
         total_files = len(files)
         transferred_count = 0
-        transferred_bytes = 0
 
-        dest_base = Path(transfer.destination_path)
-        src_base = Path(transfer.source_path)
+        staging = Path(transfer.staging_path) if transfer.staging_path else None
+        production = Path(transfer.production_path) if transfer.production_path else None
+
+        if not staging or not production:
+            transfer.status = TransferStatus.SCAN_FAILED
+            transfer.transfer_completed_at = datetime.now(timezone.utc)
+            db.commit()
+            return {"error": "Missing staging or production path"}
 
         for tf in files:
             try:
-                if src_base.is_file():
-                    src_file = src_base
-                else:
-                    src_file = src_base / tf.relative_path
-
-                dest_file = dest_base / tf.relative_path
+                src_file = staging / tf.original_path
+                dest_file = production / tf.filename
                 dest_file.parent.mkdir(parents=True, exist_ok=True)
 
                 shutil.copy2(str(src_file), str(dest_file))
 
-                tf.checksum_source = _compute_checksum(str(src_file))
-
-                transfer.status = TransferStatus.CHECKSUMMING
-                db.commit()
-
-                tf.checksum_destination = _compute_checksum(str(dest_file))
-                tf.checksum_verified = tf.checksum_source == tf.checksum_destination
-                tf.transferred = tf.checksum_verified
-
-                if not tf.checksum_verified:
-                    tf.error = "Checksum mismatch"
-                    logger.error("Checksum mismatch for %s in transfer %s", tf.relative_path, transfer.reference_id)
+                tf.checksum_sha256 = _compute_checksum(str(dest_file))
+                src_checksum = _compute_checksum(str(src_file))
+                tf.checksum_verified = tf.checksum_sha256 == src_checksum
 
                 transferred_count += 1
-                transferred_bytes += tf.file_size_bytes
-                transfer.transferred_bytes = transferred_bytes
-                transfer.progress_percent = round((transferred_count / total_files) * 100, 2)
-                transfer.status = TransferStatus.IN_PROGRESS
                 db.commit()
 
                 self.update_state(
                     state="PROGRESS",
-                    meta={"current": transferred_count, "total": total_files, "percent": transfer.progress_percent},
+                    meta={"current": transferred_count, "total": total_files},
                 )
 
             except Exception as exc:
-                tf.error = str(exc)
-                tf.transferred = False
+                tf.virus_scan_detail = f"Transfer error: {exc}"
                 db.commit()
-                logger.exception("Error transferring file %s", tf.relative_path)
+                logger.exception("Error transferring file %s", tf.filename)
 
-        failed_files = [f for f in files if not f.transferred]
-        if failed_files:
-            transfer.status = TransferStatus.FAILED
-            transfer.error_message = f"{len(failed_files)} file(s) failed to transfer"
+        transfer.status = TransferStatus.VERIFYING
+        db.commit()
+
+        failed = [f for f in files if not f.checksum_verified]
+        if failed:
+            transfer.transfer_verified = False
         else:
-            transfer.status = TransferStatus.COMPLETED
-            transfer.progress_percent = 100.0
+            transfer.transfer_verified = True
+            transfer.status = TransferStatus.TRANSFERRED
 
-        transfer.completed_at = datetime.now(timezone.utc)
+        transfer.transfer_completed_at = datetime.now(timezone.utc)
         db.commit()
 
         logger.info(
             "Transfer %s finished: %s (%d/%d files)",
-            transfer.reference_id,
+            transfer.reference,
             transfer.status.value,
-            transferred_count - len(failed_files),
+            transferred_count - len(failed),
             total_files,
         )
 
         return {
             "transfer_id": transfer.id,
-            "reference_id": transfer.reference_id,
+            "reference": transfer.reference,
             "status": transfer.status.value,
-            "files_transferred": transferred_count - len(failed_files),
-            "files_failed": len(failed_files),
+            "files_ok": transferred_count - len(failed),
+            "files_failed": len(failed),
             "total_files": total_files,
         }
 
@@ -129,9 +119,7 @@ def execute_transfer_task(self, transfer_id: int) -> dict:
         logger.exception("Fatal error in transfer task %d", transfer_id)
         transfer = db.query(Transfer).filter(Transfer.id == transfer_id).first()
         if transfer:
-            transfer.status = TransferStatus.FAILED
-            transfer.error_message = str(exc)
-            transfer.completed_at = datetime.now(timezone.utc)
+            transfer.transfer_completed_at = datetime.now(timezone.utc)
             db.commit()
         raise
     finally:

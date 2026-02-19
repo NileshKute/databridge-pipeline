@@ -1,31 +1,32 @@
 from __future__ import annotations
 
 import logging
+from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.models.audit import AuditLog
+from backend.app.models.history import TransferHistory
 
 logger = logging.getLogger("databridge.audit")
 
 
 async def log_action(
     db: AsyncSession,
-    user_id: int,
+    transfer_id: int,
     action: str,
-    resource_type: str,
-    resource_id: int | None = None,
-    details: dict | None = None,
-    ip_address: str | None = None,
-    user_agent: str | None = None,
-) -> AuditLog:
-    entry = AuditLog(
+    user_id: Optional[int] = None,
+    description: Optional[str] = None,
+    metadata: Optional[dict] = None,
+    ip_address: Optional[str] = None,
+    user_agent: Optional[str] = None,
+) -> TransferHistory:
+    entry = TransferHistory(
+        transfer_id=transfer_id,
         user_id=user_id,
         action=action,
-        resource_type=resource_type,
-        resource_id=resource_id,
-        details=details,
+        description=description,
+        metadata_json=metadata,
         ip_address=ip_address,
         user_agent=user_agent,
     )
@@ -34,19 +35,16 @@ async def log_action(
     return entry
 
 
-async def get_audit_logs(
+async def get_transfer_history(
     db: AsyncSession,
-    resource_type: str | None = None,
-    resource_id: int | None = None,
-    user_id: int | None = None,
+    transfer_id: int,
     limit: int = 100,
-) -> list[AuditLog]:
-    query = select(AuditLog).order_by(AuditLog.created_at.desc()).limit(limit)
-    if resource_type:
-        query = query.where(AuditLog.resource_type == resource_type)
-    if resource_id:
-        query = query.where(AuditLog.resource_id == resource_id)
-    if user_id:
-        query = query.where(AuditLog.user_id == user_id)
+) -> list[TransferHistory]:
+    query = (
+        select(TransferHistory)
+        .where(TransferHistory.transfer_id == transfer_id)
+        .order_by(TransferHistory.created_at.desc())
+        .limit(limit)
+    )
     result = await db.execute(query)
     return list(result.scalars().all())

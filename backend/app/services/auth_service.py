@@ -15,8 +15,8 @@ from backend.app.core.security import (
     verify_password,
 )
 from backend.app.integrations.ldap import LDAPUser, ldap_client
-from backend.app.models.user import User
-from backend.app.schemas.auth import TokenResponse
+from backend.app.models.user import User, UserRole
+from backend.app.schemas.user import TokenResponse, UserResponse
 
 logger = logging.getLogger("databridge.auth_service")
 
@@ -25,11 +25,13 @@ async def authenticate_user(db: AsyncSession, username: str, password: str) -> U
     result = await db.execute(select(User).where(User.username == username))
     user = result.scalar_one_or_none()
 
-    if user and not user.is_ldap_user:
-        if user.hashed_password and verify_password(password, user.hashed_password):
+    # Local user (non-LDAP)
+    if user and user.ldap_dn is None:
+        if verify_password(password, user.ldap_groups or ""):
             return user
         return None
 
+    # LDAP authentication
     ldap_user: LDAPUser | None = ldap_client.authenticate(username, password)
     if ldap_user is None:
         return None
@@ -43,7 +45,6 @@ async def authenticate_user(db: AsyncSession, username: str, password: str) -> U
             display_name=ldap_user.display_name,
             department=ldap_user.department,
             role=role,
-            is_ldap_user=True,
             is_active=True,
         )
         db.add(user)
@@ -66,7 +67,7 @@ def generate_tokens(user: User) -> TokenResponse:
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
-        expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=UserResponse.model_validate(user),
     )
 
 
@@ -100,10 +101,8 @@ async def create_local_user(
         username=username,
         email=email,
         display_name=display_name,
-        hashed_password=hash_password(password),
         role=role,
         department=department,
-        is_ldap_user=False,
         is_active=True,
     )
     db.add(user)

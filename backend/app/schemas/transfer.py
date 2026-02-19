@@ -3,82 +3,111 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
-from backend.app.models.transfer import TransferPriority, TransferStatus
-
-
-class TransferFileRead(BaseModel):
-    id: int
-    relative_path: str
-    file_size_bytes: int
-    checksum_source: Optional[str]
-    checksum_destination: Optional[str]
-    checksum_verified: Optional[bool]
-    transferred: bool
-
-    model_config = {"from_attributes": True}
+from backend.app.models.approval import ApprovalStatus
+from backend.app.models.transfer import TransferCategory, TransferPriority, TransferStatus
+from backend.app.models.user import UserRole
 
 
 class TransferCreate(BaseModel):
-    project_id: int
-    title: str = Field(..., min_length=1, max_length=300)
-    description: Optional[str] = None
+    name: str = Field(..., min_length=1, max_length=300)
+    category: Optional[TransferCategory] = None
     priority: TransferPriority = TransferPriority.NORMAL
-    source_path: str = Field(..., min_length=1)
-    destination_path: str = Field(..., min_length=1)
-    shotgrid_task_id: Optional[int] = None
-    shotgrid_version_id: Optional[int] = None
-
-
-class TransferRead(BaseModel):
-    id: int
-    reference_id: str
-    project_id: int
-    created_by: int
-    approved_by: Optional[int]
-    title: str
-    description: Optional[str]
-    status: TransferStatus
-    priority: TransferPriority
-    source_path: str
-    destination_path: str
-    total_size_bytes: int
-    transferred_bytes: int
-    file_count: int
-    progress_percent: float
-    shotgrid_task_id: Optional[int]
-    shotgrid_version_id: Optional[int]
-    error_message: Optional[str]
-    celery_task_id: Optional[str]
-    started_at: Optional[datetime]
-    completed_at: Optional[datetime]
-    created_at: datetime
-    updated_at: datetime
-    files: List[TransferFileRead] = []
-
-    model_config = {"from_attributes": True}
+    notes: Optional[str] = None
+    shotgrid_project_id: Optional[int] = None
+    shotgrid_entity_type: Optional[str] = None
+    shotgrid_entity_id: Optional[int] = None
 
 
 class TransferUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
+    name: Optional[str] = Field(None, max_length=300)
+    notes: Optional[str] = None
     priority: Optional[TransferPriority] = None
-    status: Optional[TransferStatus] = None
+    tags: Optional[List[str]] = None
 
 
-class TransferListRead(BaseModel):
+class TransferFileResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
-    reference_id: str
-    project_id: int
-    created_by: int
-    title: str
+    filename: str
+    size_bytes: int
+    checksum_sha256: Optional[str] = None
+    virus_scan_status: str
+    uploaded_at: datetime
+
+
+class ApprovalChainItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    role: UserRole
+    status: ApprovalStatus
+    approver_name: Optional[str] = None
+    comment: Optional[str] = None
+    decided_at: Optional[datetime] = None
+
+
+class TransferResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    reference: str
+    name: str
+    description: Optional[str] = None
+    category: Optional[TransferCategory] = None
     status: TransferStatus
     priority: TransferPriority
+    artist_id: int
+    artist_name: str
+
+    total_files: int
     total_size_bytes: int
-    progress_percent: float
-    file_count: int
+    staging_path: Optional[str] = None
+    production_path: Optional[str] = None
+
+    shotgrid_project_id: Optional[int] = None
+    shotgrid_entity_type: Optional[str] = None
+    shotgrid_entity_id: Optional[int] = None
+    shotgrid_entity_name: Optional[str] = None
+    shotgrid_task_id: Optional[int] = None
+    shotgrid_version_id: Optional[int] = None
+
+    scan_started_at: Optional[datetime] = None
+    scan_completed_at: Optional[datetime] = None
+    scan_result: Optional[dict] = None
+    scan_passed: Optional[bool] = None
+
+    transfer_started_at: Optional[datetime] = None
+    transfer_completed_at: Optional[datetime] = None
+    transfer_verified: Optional[bool] = None
+    transfer_method: Optional[str] = None
+
+    notes: Optional[str] = None
+    rejection_reason: Optional[str] = None
+    tags: Optional[List[str]] = None
+
     created_at: datetime
     updated_at: datetime
 
-    model_config = {"from_attributes": True}
+    files: List[TransferFileResponse] = []
+    approval_chain: List[ApprovalChainItem] = []
+    size_display: str = ""
+
+
+class TransferListResponse(BaseModel):
+    items: List[TransferResponse]
+    total: int
+    page: int
+    per_page: int
+    pages: int
+
+
+class TransferStatsResponse(BaseModel):
+    total: int = 0
+    pending: int = 0
+    approved: int = 0
+    scanning: int = 0
+    transferred: int = 0
+    rejected: int = 0
+    avg_time_hours: Optional[float] = None

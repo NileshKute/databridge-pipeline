@@ -10,63 +10,118 @@ from backend.app.core.dependencies import get_current_user, require_role
 from backend.app.core.database import get_db
 from backend.app.models.transfer import TransferStatus
 from backend.app.models.user import User, UserRole
-from backend.app.schemas.common import MessageResponse, PaginatedResponse
 from backend.app.schemas.transfer import (
     TransferCreate,
-    TransferListRead,
-    TransferRead,
+    TransferListResponse,
+    TransferResponse,
+    TransferStatsResponse,
     TransferUpdate,
+    TransferFileResponse,
+    ApprovalChainItem,
 )
 from backend.app.services import audit_service, transfer_service
-from backend.app.tasks.transfer_tasks import execute_transfer_task
 
 router = APIRouter()
 
 
-@router.get("/", response_model=PaginatedResponse)
+def _build_transfer_response(transfer) -> TransferResponse:
+    files = [TransferFileResponse.model_validate(f) for f in transfer.files]
+    approval_chain = [
+        ApprovalChainItem(
+            role=a.required_role,
+            status=a.status,
+            approver_name=a.approver.display_name if a.approver else None,
+            comment=a.comment,
+            decided_at=a.decided_at,
+        )
+        for a in transfer.approvals
+    ]
+    return TransferResponse(
+        id=transfer.id,
+        reference=transfer.reference,
+        name=transfer.name,
+        description=transfer.description,
+        category=transfer.category,
+        status=transfer.status,
+        priority=transfer.priority,
+        artist_id=transfer.artist_id,
+        artist_name=transfer.artist.display_name if transfer.artist else "Unknown",
+        total_files=transfer.total_files,
+        total_size_bytes=transfer.total_size_bytes,
+        staging_path=transfer.staging_path,
+        production_path=transfer.production_path,
+        shotgrid_project_id=transfer.shotgrid_project_id,
+        shotgrid_entity_type=transfer.shotgrid_entity_type,
+        shotgrid_entity_id=transfer.shotgrid_entity_id,
+        shotgrid_entity_name=transfer.shotgrid_entity_name,
+        shotgrid_task_id=transfer.shotgrid_task_id,
+        shotgrid_version_id=transfer.shotgrid_version_id,
+        scan_started_at=transfer.scan_started_at,
+        scan_completed_at=transfer.scan_completed_at,
+        scan_result=transfer.scan_result,
+        scan_passed=transfer.scan_passed,
+        transfer_started_at=transfer.transfer_started_at,
+        transfer_completed_at=transfer.transfer_completed_at,
+        transfer_verified=transfer.transfer_verified,
+        transfer_method=transfer.transfer_method,
+        notes=transfer.notes,
+        rejection_reason=transfer.rejection_reason,
+        tags=transfer.tags,
+        created_at=transfer.created_at,
+        updated_at=transfer.updated_at,
+        files=files,
+        approval_chain=approval_chain,
+        size_display=transfer.size_display,
+    )
+
+
+@router.get("/", response_model=TransferListResponse)
 async def list_transfers(
     db: Annotated[AsyncSession, Depends(get_db)],
     _: Annotated[User, Depends(get_current_user)],
-    project_id: Optional[int] = Query(None),
     transfer_status: Optional[TransferStatus] = Query(None, alias="status"),
     page: int = Query(1, ge=1),
-    page_size: int = Query(25, ge=1, le=100),
+    per_page: int = Query(25, ge=1, le=100),
 ):
     transfers, total = await transfer_service.list_transfers(
-        db, project_id=project_id, status=transfer_status, page=page, page_size=page_size
+        db, status=transfer_status, page=page, per_page=per_page
     )
-    return PaginatedResponse(
-        items=[TransferListRead.model_validate(t) for t in transfers],
+    return TransferListResponse(
+        items=[_build_transfer_response(t) for t in transfers],
         total=total,
         page=page,
-        page_size=page_size,
-        total_pages=math.ceil(total / page_size) if total else 0,
+        per_page=per_page,
+        pages=math.ceil(total / per_page) if total else 0,
     )
 
 
-@router.post("/", response_model=TransferRead, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=TransferResponse, status_code=status.HTTP_201_CREATED)
 async def create_transfer(
     payload: TransferCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    try:
-        transfer = await transfer_service.create_transfer(db, payload, current_user)
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    transfer = await transfer_service.create_transfer(db, payload, current_user)
 
     await audit_service.log_action(
         db,
+        transfer_id=transfer.id,
         user_id=current_user.id,
         action="transfer.created",
-        resource_type="transfer",
-        resource_id=transfer.id,
-        details={"reference_id": transfer.reference_id, "source": transfer.source_path},
+        description=f"Transfer {transfer.reference} created",
     )
-    return transfer
+    return _build_transfer_response(transfer)
 
 
-@router.get("/{transfer_id}", response_model=TransferRead)
+@router.get("/stats", response_model=TransferStatsResponse)
+async def get_stats(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[User, Depends(get_current_user)],
+):
+    return await transfer_service.get_transfer_stats(db)
+
+
+@router.get("/{transfer_id}", response_model=TransferResponse)
 async def get_transfer(
     transfer_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -75,10 +130,10 @@ async def get_transfer(
     transfer = await transfer_service.get_transfer(db, transfer_id)
     if transfer is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transfer not found")
-    return transfer
+    return _build_transfer_response(transfer)
 
 
-@router.patch("/{transfer_id}", response_model=TransferRead)
+@router.patch("/{transfer_id}", response_model=TransferResponse)
 async def update_transfer(
     transfer_id: int,
     payload: TransferUpdate,
@@ -88,68 +143,10 @@ async def update_transfer(
     transfer = await transfer_service.update_transfer(db, transfer_id, payload)
     if transfer is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transfer not found")
-    return transfer
+    return _build_transfer_response(transfer)
 
 
-@router.post("/{transfer_id}/approve", response_model=TransferRead)
-async def approve_transfer(
-    transfer_id: int,
-    db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        User, Depends(require_role(UserRole.LEAD, UserRole.SUPERVISOR, UserRole.PRODUCER, UserRole.ADMIN))
-    ],
-):
-    transfer = await transfer_service.get_transfer(db, transfer_id)
-    if transfer is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transfer not found")
-    if transfer.status != TransferStatus.PENDING:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Transfer is not in pending state")
-
-    transfer.status = TransferStatus.APPROVED
-    transfer.approved_by = current_user.id
-    await db.flush()
-
-    await audit_service.log_action(
-        db,
-        user_id=current_user.id,
-        action="transfer.approved",
-        resource_type="transfer",
-        resource_id=transfer.id,
-    )
-    return transfer
-
-
-@router.post("/{transfer_id}/start", response_model=TransferRead)
-async def start_transfer(
-    transfer_id: int,
-    db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[
-        User, Depends(require_role(UserRole.LEAD, UserRole.SUPERVISOR, UserRole.PRODUCER, UserRole.ADMIN))
-    ],
-):
-    transfer = await transfer_service.get_transfer(db, transfer_id)
-    if transfer is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transfer not found")
-    if transfer.status != TransferStatus.APPROVED:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Transfer must be approved before starting")
-
-    task = execute_transfer_task.delay(transfer.id)
-    transfer.celery_task_id = task.id
-    transfer.status = TransferStatus.IN_PROGRESS
-    await db.flush()
-
-    await audit_service.log_action(
-        db,
-        user_id=current_user.id,
-        action="transfer.started",
-        resource_type="transfer",
-        resource_id=transfer.id,
-        details={"celery_task_id": task.id},
-    )
-    return transfer
-
-
-@router.post("/{transfer_id}/cancel", response_model=MessageResponse)
+@router.post("/{transfer_id}/cancel")
 async def cancel_transfer(
     transfer_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -161,9 +158,9 @@ async def cancel_transfer(
 
     await audit_service.log_action(
         db,
+        transfer_id=transfer.id,
         user_id=current_user.id,
         action="transfer.cancelled",
-        resource_type="transfer",
-        resource_id=transfer.id,
+        description=f"Transfer {transfer.reference} cancelled",
     )
-    return MessageResponse(message="Transfer cancelled")
+    return {"message": "Transfer cancelled"}

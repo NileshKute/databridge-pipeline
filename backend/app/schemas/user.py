@@ -3,38 +3,34 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from backend.app.models.user import UserRole
 
 
-class UserCreate(BaseModel):
-    username: str = Field(..., min_length=2, max_length=100)
-    email: EmailStr
-    display_name: str = Field(..., min_length=1, max_length=255)
-    role: UserRole = UserRole.ARTIST
-    department: Optional[str] = None
-    password: Optional[str] = Field(None, min_length=8)
+class UserLogin(BaseModel):
+    username: str = Field(..., min_length=1, max_length=100)
+    password: str = Field(..., min_length=1)
 
 
-class UserRead(BaseModel):
+class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     username: str
-    email: str
     display_name: str
+    email: str
     role: UserRole
-    department: Optional[str]
+    department: Optional[str] = None
+    title: Optional[str] = None
     is_active: bool
-    is_ldap_user: bool
-    last_login: Optional[datetime]
+    shotgrid_user_id: Optional[int] = None
+    last_login: Optional[datetime] = None
     created_at: datetime
 
-    model_config = {"from_attributes": True}
 
-
-class UserUpdate(BaseModel):
-    email: Optional[EmailStr] = None
-    display_name: Optional[str] = None
-    role: Optional[UserRole] = None
-    department: Optional[str] = None
-    is_active: Optional[bool] = None
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    user: UserResponse
