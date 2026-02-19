@@ -1,25 +1,25 @@
 from __future__ import annotations
 
-import math
-from typing import Annotated, Optional
+from typing import Annotated, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.core.dependencies import get_current_user, require_role
 from backend.app.core.database import get_db
-from backend.app.models.transfer import TransferStatus
-from backend.app.models.user import User, UserRole
+from backend.app.core.dependencies import get_current_user
+from backend.app.models.transfer import TransferCategory, TransferStatus
+from backend.app.models.user import User
 from backend.app.schemas.transfer import (
+    ApprovalChainItem,
     TransferCreate,
+    TransferFileResponse,
     TransferListResponse,
     TransferResponse,
     TransferStatsResponse,
     TransferUpdate,
-    TransferFileResponse,
-    ApprovalChainItem,
 )
-from backend.app.services import audit_service, transfer_service
+from backend.app.services.file_service import file_service
+from backend.app.services.transfer_service import transfer_service
 
 router = APIRouter()
 
@@ -75,17 +75,40 @@ def _build_transfer_response(transfer) -> TransferResponse:
     )
 
 
+# ── Create ───────────────────────────────────────────────────────
+
+@router.post("/", response_model=TransferResponse, status_code=status.HTTP_201_CREATED)
+async def create_transfer(
+    payload: TransferCreate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    transfer = await transfer_service.create_transfer(payload, current_user, db)
+    return _build_transfer_response(transfer)
+
+
+# ── List ─────────────────────────────────────────────────────────
+
 @router.get("/", response_model=TransferListResponse)
 async def list_transfers(
     db: Annotated[AsyncSession, Depends(get_db)],
-    _: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     transfer_status: Optional[TransferStatus] = Query(None, alias="status"),
+    category: Optional[TransferCategory] = Query(None),
+    search: Optional[str] = Query(None, max_length=200),
     page: int = Query(1, ge=1),
-    per_page: int = Query(25, ge=1, le=100),
+    per_page: int = Query(20, ge=1, le=100),
 ):
     transfers, total = await transfer_service.list_transfers(
-        db, status=transfer_status, page=page, per_page=per_page
+        db,
+        user=current_user,
+        transfer_status=transfer_status,
+        category=category,
+        search=search,
+        page=page,
+        per_page=per_page,
     )
+    import math
     return TransferListResponse(
         items=[_build_transfer_response(t) for t in transfers],
         total=total,
@@ -95,72 +118,110 @@ async def list_transfers(
     )
 
 
-@router.post("/", response_model=TransferResponse, status_code=status.HTTP_201_CREATED)
-async def create_transfer(
-    payload: TransferCreate,
-    db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-    transfer = await transfer_service.create_transfer(db, payload, current_user)
-
-    await audit_service.log_action(
-        db,
-        transfer_id=transfer.id,
-        user_id=current_user.id,
-        action="transfer.created",
-        description=f"Transfer {transfer.reference} created",
-    )
-    return _build_transfer_response(transfer)
-
+# ── Stats ────────────────────────────────────────────────────────
 
 @router.get("/stats", response_model=TransferStatsResponse)
 async def get_stats(
     db: Annotated[AsyncSession, Depends(get_db)],
-    _: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
-    return await transfer_service.get_transfer_stats(db)
+    return await transfer_service.get_stats(db, current_user)
 
+
+# ── Detail ───────────────────────────────────────────────────────
 
 @router.get("/{transfer_id}", response_model=TransferResponse)
 async def get_transfer(
     transfer_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    _: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
-    transfer = await transfer_service.get_transfer(db, transfer_id)
-    if transfer is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transfer not found")
+    transfer = await transfer_service.get_transfer(transfer_id, db, current_user)
     return _build_transfer_response(transfer)
 
 
-@router.patch("/{transfer_id}", response_model=TransferResponse)
+# ── Update ───────────────────────────────────────────────────────
+
+@router.put("/{transfer_id}", response_model=TransferResponse)
 async def update_transfer(
     transfer_id: int,
     payload: TransferUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    transfer = await transfer_service.update_transfer(db, transfer_id, payload)
-    if transfer is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transfer not found")
+    transfer = await transfer_service.update_transfer(
+        transfer_id, payload, current_user, db,
+    )
     return _build_transfer_response(transfer)
 
 
-@router.post("/{transfer_id}/cancel")
+# ── Cancel / Delete ──────────────────────────────────────────────
+
+@router.delete("/{transfer_id}")
 async def cancel_transfer(
     transfer_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    transfer = await transfer_service.cancel_transfer(db, transfer_id)
+    await transfer_service.cancel_transfer(transfer_id, current_user, db)
+    return {"message": "Transfer cancelled"}
+
+
+# ── File Upload ──────────────────────────────────────────────────
+
+@router.post(
+    "/{transfer_id}/upload",
+    response_model=List[TransferFileResponse],
+)
+async def upload_files(
+    transfer_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    files: List[UploadFile] = File(...),
+):
+    from sqlalchemy import select as sa_select
+    from backend.app.models.transfer import Transfer as TransferModel
+    result = await db.execute(
+        sa_select(TransferModel).where(TransferModel.id == transfer_id)
+    )
+    transfer = result.scalar_one_or_none()
     if transfer is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transfer not found")
 
-    await audit_service.log_action(
-        db,
-        transfer_id=transfer.id,
-        user_id=current_user.id,
-        action="transfer.cancelled",
-        description=f"Transfer {transfer.reference} cancelled",
-    )
-    return {"message": "Transfer cancelled"}
+    user_role = current_user.role.value if hasattr(current_user.role, "value") else current_user.role
+    if transfer.artist_id != current_user.id and user_role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the transfer owner can upload files",
+        )
+
+    records = await file_service.upload_files_batch(transfer_id, files, db)
+    return [TransferFileResponse.model_validate(r) for r in records]
+
+
+# ── List Files ───────────────────────────────────────────────────
+
+@router.get(
+    "/{transfer_id}/files",
+    response_model=List[TransferFileResponse],
+)
+async def list_files(
+    transfer_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    transfer = await transfer_service.get_transfer(transfer_id, db, current_user)
+    return [TransferFileResponse.model_validate(f) for f in transfer.files]
+
+
+# ── Delete File ──────────────────────────────────────────────────
+
+@router.delete("/{transfer_id}/files/{file_id}")
+async def delete_file(
+    transfer_id: int,
+    file_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    await file_service.delete_file(file_id, current_user, db)
+    return {"message": "File deleted"}
