@@ -4,12 +4,12 @@ After=network.target postgresql.service redis.service
 
 [Service]
 Type=simple
-User=databridge
-WorkingDirectory=/opt/databridge-pipeline
-ExecStart=/opt/databridge-pipeline/backend/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+User=nilesh.kute
+WorkingDirectory=/opt/webapp/databridge-pipeline
+ExecStart=/opt/webapp/databridge-pipeline/backend/.venv/bin/uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --workers 4
 Restart=always
 RestartSec=5
-Environment=PATH=/opt/databridge-pipeline/backend/.venv/bin
+Environment=PATH=/opt/webapp/databridge-pipeline/backend/.venv/bin
 
 [Install]
 WantedBy=multi-user.target

@@ -1,16 +1,20 @@
+import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+# Project root is two levels up from this file (alembic/env.py → backend → project root)
+PROJECT_ROOT = str(Path(__file__).resolve().parent.parent.parent)
+sys.path.insert(0, PROJECT_ROOT)
+os.environ.setdefault("ENV_FILE", os.path.join(PROJECT_ROOT, ".env"))
 
 from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from app.core.config import settings
-from app.core.database import Base
-from app.models import *  # noqa: F401,F403 — register all models with Base.metadata
+from backend.app.core.config import settings
+from backend.app.core.database import Base
+from backend.app.models import *  # noqa: F401,F403 — register all models with Base.metadata
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url_sync)

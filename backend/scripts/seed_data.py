@@ -4,13 +4,19 @@ Seed the DataBridge database with sample data for development.
 Usage (from the backend/ directory):
     python -m scripts.seed_data
 
-Creates 7 users, 10 transfers in various states, approvals, history, files, and notifications.
+Creates 8 users, 10 transfers in various states, approvals, history, files, and notifications.
 """
 from __future__ import annotations
 
 import asyncio
+import os
 import sys
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+PROJECT_ROOT = str(Path(__file__).resolve().parent.parent.parent)
+sys.path.insert(0, PROJECT_ROOT)
+os.environ.setdefault("ENV_FILE", os.path.join(PROJECT_ROOT, ".env"))
 
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
