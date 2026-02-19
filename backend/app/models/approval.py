@@ -33,9 +33,12 @@ class Approval(Base):
     approver_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id"), nullable=True
     )
-    required_role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False)
+    required_role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole, values_callable=lambda e: [x.value for x in e]), nullable=False,
+    )
     status: Mapped[ApprovalStatus] = mapped_column(
-        Enum(ApprovalStatus), default=ApprovalStatus.PENDING, nullable=False
+        Enum(ApprovalStatus, values_callable=lambda e: [x.value for x in e]),
+        default=ApprovalStatus.PENDING, nullable=False,
     )
     comment: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     decided_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)

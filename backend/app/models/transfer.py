@@ -70,12 +70,16 @@ class Transfer(Base):
     reference: Mapped[str] = mapped_column(String(20), unique=True, nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(300), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    category: Mapped[Optional[TransferCategory]] = mapped_column(Enum(TransferCategory), nullable=True)
+    category: Mapped[Optional[TransferCategory]] = mapped_column(
+        Enum(TransferCategory, values_callable=lambda e: [x.value for x in e]), nullable=True,
+    )
     status: Mapped[TransferStatus] = mapped_column(
-        Enum(TransferStatus), default=TransferStatus.UPLOADED, nullable=False, index=True
+        Enum(TransferStatus, values_callable=lambda e: [x.value for x in e]),
+        default=TransferStatus.UPLOADED, nullable=False, index=True,
     )
     priority: Mapped[TransferPriority] = mapped_column(
-        Enum(TransferPriority), default=TransferPriority.NORMAL, nullable=False
+        Enum(TransferPriority, values_callable=lambda e: [x.value for x in e]),
+        default=TransferPriority.NORMAL, nullable=False,
     )
     artist_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
 

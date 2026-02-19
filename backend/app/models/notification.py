@@ -35,7 +35,9 @@ class Notification(Base):
     transfer_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("transfers.id", ondelete="SET NULL"), nullable=True
     )
-    type: Mapped[NotificationType] = mapped_column(Enum(NotificationType), nullable=False)
+    type: Mapped[NotificationType] = mapped_column(
+        Enum(NotificationType, values_callable=lambda e: [x.value for x in e]), nullable=False,
+    )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

@@ -15,48 +15,49 @@ down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
-userrole_enum = sa.Enum(
+from sqlalchemy.dialects.postgresql import ENUM as PG_ENUM
+
+userrole_enum = PG_ENUM(
     "artist", "team_lead", "supervisor", "line_producer",
     "data_team", "it_team", "admin",
-    name="userrole",
+    name="userrole", create_type=False,
 )
-transferstatus_enum = sa.Enum(
+transferstatus_enum = PG_ENUM(
     "uploaded", "pending_team_lead", "pending_supervisor", "pending_line_producer",
     "approved", "scanning", "scan_passed", "scan_failed", "copying",
     "ready_for_transfer", "transferring", "verifying", "transferred",
     "rejected", "cancelled",
-    name="transferstatus",
+    name="transferstatus", create_type=False,
 )
-transferpriority_enum = sa.Enum(
+transferpriority_enum = PG_ENUM(
     "low", "normal", "high", "urgent",
-    name="transferpriority",
+    name="transferpriority", create_type=False,
 )
-transfercategory_enum = sa.Enum(
+transfercategory_enum = PG_ENUM(
     "vfx_assets", "animation", "textures", "lighting", "compositing",
     "audio", "editorial", "matchmove", "fx", "other",
-    name="transfercategory",
+    name="transfercategory", create_type=False,
 )
-approvalstatus_enum = sa.Enum(
+approvalstatus_enum = PG_ENUM(
     "pending", "approved", "rejected", "skipped",
-    name="approvalstatus",
+    name="approvalstatus", create_type=False,
 )
-notificationtype_enum = sa.Enum(
+notificationtype_enum = PG_ENUM(
     "upload", "approval_required", "approved", "rejected",
     "scan_started", "scan_complete", "scan_failed",
     "transfer_started", "transfer_complete", "transfer_failed",
     "system",
-    name="notificationtype",
+    name="notificationtype", create_type=False,
 )
 
 
 def upgrade() -> None:
-    # Create enums first (PostgreSQL-specific)
-    userrole_enum.create(op.get_bind(), checkfirst=True)
-    transferstatus_enum.create(op.get_bind(), checkfirst=True)
-    transferpriority_enum.create(op.get_bind(), checkfirst=True)
-    transfercategory_enum.create(op.get_bind(), checkfirst=True)
-    approvalstatus_enum.create(op.get_bind(), checkfirst=True)
-    notificationtype_enum.create(op.get_bind(), checkfirst=True)
+    op.execute("CREATE TYPE userrole AS ENUM ('artist','team_lead','supervisor','line_producer','data_team','it_team','admin')")
+    op.execute("CREATE TYPE transferstatus AS ENUM ('uploaded','pending_team_lead','pending_supervisor','pending_line_producer','approved','scanning','scan_passed','scan_failed','copying','ready_for_transfer','transferring','verifying','transferred','rejected','cancelled')")
+    op.execute("CREATE TYPE transferpriority AS ENUM ('low','normal','high','urgent')")
+    op.execute("CREATE TYPE transfercategory AS ENUM ('vfx_assets','animation','textures','lighting','compositing','audio','editorial','matchmove','fx','other')")
+    op.execute("CREATE TYPE approvalstatus AS ENUM ('pending','approved','rejected','skipped')")
+    op.execute("CREATE TYPE notificationtype AS ENUM ('upload','approval_required','approved','rejected','scan_started','scan_complete','scan_failed','transfer_started','transfer_complete','transfer_failed','system')")
 
     # --- users ---
     op.create_table(
@@ -187,9 +188,9 @@ def downgrade() -> None:
     op.drop_table("transfers")
     op.drop_table("users")
 
-    notificationtype_enum.drop(op.get_bind(), checkfirst=True)
-    approvalstatus_enum.drop(op.get_bind(), checkfirst=True)
-    transfercategory_enum.drop(op.get_bind(), checkfirst=True)
-    transferpriority_enum.drop(op.get_bind(), checkfirst=True)
-    transferstatus_enum.drop(op.get_bind(), checkfirst=True)
-    userrole_enum.drop(op.get_bind(), checkfirst=True)
+    op.execute("DROP TYPE IF EXISTS notificationtype")
+    op.execute("DROP TYPE IF EXISTS approvalstatus")
+    op.execute("DROP TYPE IF EXISTS transfercategory")
+    op.execute("DROP TYPE IF EXISTS transferpriority")
+    op.execute("DROP TYPE IF EXISTS transferstatus")
+    op.execute("DROP TYPE IF EXISTS userrole")

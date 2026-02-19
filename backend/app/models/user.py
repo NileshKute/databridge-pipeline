@@ -33,7 +33,10 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.ARTIST, nullable=False)
+    role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole, values_callable=lambda e: [x.value for x in e]),
+        default=UserRole.ARTIST, nullable=False,
+    )
     department: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     title: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     ldap_dn: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
