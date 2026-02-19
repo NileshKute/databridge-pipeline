@@ -1,3 +1,9 @@
-from backend.app.integrations.ldap.client import LDAPClient, LDAPUser, ldap_client
+from backend.app.integrations.ldap.ldap_auth import LDAPAuthenticator, ldap_authenticator
+from backend.app.integrations.ldap.ldap_fallback import FallbackAuthenticator, fallback_authenticator
 
-__all__ = ["LDAPClient", "LDAPUser", "ldap_client"]
+__all__ = [
+    "LDAPAuthenticator",
+    "ldap_authenticator",
+    "FallbackAuthenticator",
+    "fallback_authenticator",
+]

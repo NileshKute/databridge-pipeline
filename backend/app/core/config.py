@@ -44,6 +44,7 @@ class Settings(BaseSettings):
     LDAP_USER_ATTR: str = "sAMAccountName"
     LDAP_EMAIL_ATTR: str = "mail"
     LDAP_DISPLAY_NAME_ATTR: str = "displayName"
+    LDAP_USER_SEARCH_FILTER: str = "(&(objectClass=user)({user_attr}={username}))"
     LDAP_ROLE_MAP: Dict[str, str] = {
         "cn=artists,ou=groups,dc=yourstudio,dc=com": "artist",
         "cn=team-leads,ou=groups,dc=yourstudio,dc=com": "team_lead",
