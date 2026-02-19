@@ -5,7 +5,7 @@ from sqlalchemy import engine_from_config, pool
 
 from backend.app.core.config import settings
 from backend.app.core.database import Base
-from backend.app.models import *  # noqa: F401,F403 — import all models so metadata is populated
+from backend.app.models import *  # noqa: F401,F403 — register all models with Base.metadata
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url_sync)
@@ -18,7 +18,12 @@ target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:
     url = config.get_main_option("sqlalchemy.url")
-    context.configure(url=url, target_metadata=target_metadata, literal_binds=True, dialect_opts={"paramstyle": "named"})
+    context.configure(
+        url=url,
+        target_metadata=target_metadata,
+        literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
+    )
     with context.begin_transaction():
         context.run_migrations()
 
