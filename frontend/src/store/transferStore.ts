@@ -1,47 +1,68 @@
 import { create } from "zustand";
 import { transfersApi } from "@/api/transfers";
-import type { Transfer, TransferListItem } from "@/types";
+import type { Transfer, TransferStats } from "@/types";
+
+interface Pagination {
+  page: number;
+  perPage: number;
+  total: number;
+  pages: number;
+}
 
 interface TransferState {
-  transfers: TransferListItem[];
+  transfers: Transfer[];
   currentTransfer: Transfer | null;
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
+  stats: TransferStats | null;
   isLoading: boolean;
   error: string | null;
-  fetchTransfers: (params?: { project_id?: number; status?: string; page?: number }) => Promise<void>;
+  pagination: Pagination;
+
+  fetchTransfers: (filters?: {
+    status?: string;
+    category?: string;
+    search?: string;
+    page?: number;
+    per_page?: number;
+  }) => Promise<void>;
   fetchTransfer: (id: number) => Promise<void>;
-  approveTransfer: (id: number) => Promise<void>;
-  startTransfer: (id: number) => Promise<void>;
-  cancelTransfer: (id: number) => Promise<void>;
+  fetchStats: () => Promise<void>;
+  createTransfer: (data: {
+    name: string;
+    category?: string;
+    priority?: string;
+    notes?: string;
+    shotgrid_project_id?: number;
+    shotgrid_entity_type?: string;
+    shotgrid_entity_id?: number;
+  }) => Promise<Transfer>;
 }
 
 export const useTransferStore = create<TransferState>((set, get) => ({
   transfers: [],
   currentTransfer: null,
-  total: 0,
-  page: 1,
-  pageSize: 25,
-  totalPages: 0,
+  stats: null,
   isLoading: false,
   error: null,
+  pagination: { page: 1, perPage: 20, total: 0, pages: 0 },
 
-  fetchTransfers: async (params) => {
+  fetchTransfers: async (filters) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await transfersApi.list({
-        page: params?.page ?? get().page,
-        page_size: get().pageSize,
-        project_id: params?.project_id,
-        status: params?.status,
+      const resp = await transfersApi.list({
+        status: filters?.status,
+        category: filters?.category,
+        search: filters?.search,
+        page: filters?.page ?? get().pagination.page,
+        per_page: filters?.per_page ?? get().pagination.perPage,
       });
       set({
-        transfers: response.items,
-        total: response.total,
-        page: response.page,
-        totalPages: response.total_pages,
+        transfers: resp.items,
+        pagination: {
+          page: resp.page,
+          perPage: resp.per_page,
+          total: resp.total,
+          pages: resp.pages,
+        },
         isLoading: false,
       });
     } catch {
@@ -59,20 +80,18 @@ export const useTransferStore = create<TransferState>((set, get) => ({
     }
   },
 
-  approveTransfer: async (id) => {
-    const transfer = await transfersApi.approve(id);
-    set({ currentTransfer: transfer });
-    await get().fetchTransfers();
+  fetchStats: async () => {
+    try {
+      const stats = await transfersApi.stats();
+      set({ stats });
+    } catch {
+      // Non-critical — don't set loading state
+    }
   },
 
-  startTransfer: async (id) => {
-    const transfer = await transfersApi.start(id);
-    set({ currentTransfer: transfer });
+  createTransfer: async (data) => {
+    const transfer = await transfersApi.create(data);
     await get().fetchTransfers();
-  },
-
-  cancelTransfer: async (id) => {
-    await transfersApi.cancel(id);
-    await get().fetchTransfers();
+    return transfer;
   },
 }));

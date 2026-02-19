@@ -18,4 +18,12 @@ export const authApi = {
     const { data } = await apiClient.get<User>("/auth/me");
     return data;
   },
+
+  logout: async (): Promise<void> => {
+    try {
+      await apiClient.post("/auth/logout");
+    } catch {
+      // Ignore — we clear local state regardless
+    }
+  },
 };
