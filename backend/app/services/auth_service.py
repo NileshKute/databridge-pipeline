@@ -67,20 +67,13 @@ class AuthService:
             user.ldap_dn = auth_data.get("ldap_dn")
             user.ldap_groups = auth_data.get("ldap_groups", "")
 
-        if settings.SHOTGRID_ENABLED:
+        if settings.SHOTGRID_ENABLED and user.shotgrid_user_id is None:
             try:
-                from backend.app.integrations.shotgrid import shotgrid_client
-                if shotgrid_client.connected and user.shotgrid_user_id is None:
-                    sg = shotgrid_client._connect()
-                    if sg:
-                        sg_user = sg.find_one(
-                            "HumanUser",
-                            [["login", "is", username]],
-                            ["id"],
-                        )
-                        if sg_user:
-                            user.shotgrid_user_id = sg_user["id"]
-                            logger.info("Linked ShotGrid user id=%d for %s", sg_user["id"], username)
+                from backend.app.services.shotgrid_service import shotgrid_service
+                sg_user_id = await shotgrid_service.resolve_user(username)
+                if sg_user_id:
+                    user.shotgrid_user_id = sg_user_id
+                    logger.info("Linked ShotGrid user id=%d for %s", sg_user_id, username)
             except Exception:
                 logger.debug("ShotGrid user resolution skipped for %s", username)
 
