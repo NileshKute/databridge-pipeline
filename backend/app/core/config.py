@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: List[str] = ["*"]
 
     # Database (existing PostgreSQL)
-    DATABASE_URL: str = "postgresql+asyncpg://databridge_user:your_password@localhost:5432/databridge_db"
+    DATABASE_URL: str = "postgresql+asyncpg://nilesh:P1a%40ss3@localhost:5432/databridge_db"
     DATABASE_ECHO: bool = False
     DATABASE_POOL_SIZE: int = 20
     DATABASE_MAX_OVERFLOW: int = 10
@@ -32,33 +32,33 @@ class Settings(BaseSettings):
     CELERY_BROKER_URL: str = "redis://localhost:6379/1"
     CELERY_RESULT_BACKEND: str = "redis://localhost:6379/2"
 
-    # LDAP (studio Active Directory)
+    # LDAP (Red Chillies Active Directory)
     LDAP_ENABLED: bool = True
-    LDAP_SERVER: str = "ldap://your-ad-server:389"
+    LDAP_SERVER: str = "ldap://mumdc01.redchillies.com"
     LDAP_USE_SSL: bool = False
-    LDAP_BASE_DN: str = "dc=yourstudio,dc=com"
-    LDAP_USER_DN: str = "ou=users,dc=yourstudio,dc=com"
-    LDAP_GROUP_DN: str = "ou=groups,dc=yourstudio,dc=com"
-    LDAP_BIND_DN: str = "cn=databridge,ou=services,dc=yourstudio,dc=com"
+    LDAP_BASE_DN: str = "OU=Redchillies,DC=redchillies,DC=com"
+    LDAP_USER_DN: str = "OU=Redchillies,DC=redchillies,DC=com"
+    LDAP_GROUP_DN: str = "OU=Groups,DC=redchillies,DC=com"
+    LDAP_BIND_DN: str = "cn=proxyuser,cn=Users,dc=redchillies,dc=com"
     LDAP_BIND_PASSWORD: str = ""
-    LDAP_USER_ATTR: str = "sAMAccountName"
+    LDAP_USER_ATTR: str = "uid"
     LDAP_EMAIL_ATTR: str = "mail"
     LDAP_DISPLAY_NAME_ATTR: str = "displayName"
     LDAP_USER_SEARCH_FILTER: str = "(&(objectClass=user)({user_attr}={username}))"
     LDAP_ROLE_MAP: Dict[str, str] = {
-        "cn=artists,ou=groups,dc=yourstudio,dc=com": "artist",
-        "cn=team-leads,ou=groups,dc=yourstudio,dc=com": "team_lead",
-        "cn=supervisors,ou=groups,dc=yourstudio,dc=com": "supervisor",
-        "cn=line-producers,ou=groups,dc=yourstudio,dc=com": "line_producer",
-        "cn=data-team,ou=groups,dc=yourstudio,dc=com": "data_team",
-        "cn=it-team,ou=groups,dc=yourstudio,dc=com": "it_team",
-        "cn=admins,ou=groups,dc=yourstudio,dc=com": "admin",
+        "cn=artists,OU=Groups,DC=redchillies,DC=com": "artist",
+        "cn=team-leads,OU=Groups,DC=redchillies,DC=com": "team_lead",
+        "cn=supervisors,OU=Groups,DC=redchillies,DC=com": "supervisor",
+        "cn=line-producers,OU=Groups,DC=redchillies,DC=com": "line_producer",
+        "cn=data-team,OU=Groups,DC=redchillies,DC=com": "data_team",
+        "cn=it-team,OU=Groups,DC=redchillies,DC=com": "it_team",
+        "cn=admins,OU=Groups,DC=redchillies,DC=com": "admin",
     }
 
-    # ShotGrid
+    # ShotGrid (RCVFX)
     SHOTGRID_ENABLED: bool = True
-    SHOTGRID_URL: str = "https://yourstudio.shotgrid.autodesk.com"
-    SHOTGRID_SCRIPT_NAME: str = "databridge"
+    SHOTGRID_URL: str = "https://rcvfx.shotgunstudio.com"
+    SHOTGRID_SCRIPT_NAME: str = "shotgrid_api"
     SHOTGRID_API_KEY: str = ""
     SHOTGRID_PROJECT_ID: int = 0
 
@@ -77,10 +77,10 @@ class Settings(BaseSettings):
     # Transfer
     TRANSFER_METHOD: str = "rsync"
 
-    # SMTP (studio email server)
-    SMTP_HOST: str = "smtp.yourstudio.com"
+    # SMTP
+    SMTP_HOST: str = "smtp.redchillies.com"
     SMTP_PORT: int = 587
-    SMTP_FROM_EMAIL: str = "databridge@yourstudio.com"
+    SMTP_FROM_EMAIL: str = "databridge@redchillies.com"
     NOTIFICATION_ENABLED: bool = True
 
     # ClamAV
