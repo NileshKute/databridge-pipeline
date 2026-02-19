@@ -1,8 +1,11 @@
-# DataBridge Pipeline
+# DataBridge Pipeline v1.0
 
 Staging-to-Production data transfer management for VFX/Animation studios.
 
+Multi-stage approval workflow, ClamAV virus scanning, SHA-256 checksum verification, ShotGrid integration, and role-based access control — all served from a single port on a studio Linux server.
+
 ## Requirements
+
 - Python 3.9+
 - Node.js 20+
 - PostgreSQL 15 (existing studio server)
@@ -58,7 +61,6 @@ python -m scripts.create_db
 
 **Option B** — Manually via psql:
 ```bash
-# Using root password if no sudo
 su -c "psql -U postgres" root
 
 # In psql:
@@ -115,6 +117,20 @@ celery -A backend.app.core.celery_app worker -l info -Q default,scanning,transfe
 
 Open: **http://your-server:8000**
 
+## Production Deployment
+
+For production, use the systemd service files:
+
+```bash
+cp scripts/databridge.service /etc/systemd/system/
+cp scripts/databridge-celery.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now databridge
+systemctl enable --now databridge-celery
+```
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the full production deployment guide.
+
 ## Development Mode
 
 Run the backend and frontend dev servers separately:
@@ -130,11 +146,21 @@ cd frontend && npm run dev
 
 Frontend dev server runs on **http://localhost:3000**
 
+## Running Tests
+
+```bash
+cd backend
+source .venv/bin/activate
+pip install pytest pytest-asyncio httpx aiosqlite
+pytest tests/ -v
+```
+
 ## Dev Login (when LDAP_ENABLED=false)
 
 | Username    | Password     | Role           |
 |-------------|--------------|----------------|
 | artist1     | artist123    | Artist         |
+| artist2     | artist123    | Artist         |
 | teamlead1   | teamlead123  | Team Lead      |
 | supervisor1 | super123     | Supervisor     |
 | producer1   | producer123  | Line Producer  |
@@ -157,15 +183,31 @@ Frontend dev server runs on **http://localhost:3000**
 | TRF-00009   | Tex_Vehicle_Pack      | Approved            | Normal   |
 | TRF-00010   | Light_Interior_v2     | Uploaded            | Low      |
 
+## Pipeline Flow
+
+```
+Artist Upload → Team Lead Review → Supervisor Review → Line Producer Approval
+    → Data Team Scan (ClamAV + SHA-256) → IT Transfer (rsync/cp)
+    → Checksum Verification → Production Delivery
+```
+
 ## Architecture
 
-- **Single server**: FastAPI serves React build + API on one port
+- **Single server**: FastAPI serves React build + API on one port (:8000)
 - **Celery workers**: Handle scanning, file transfer, email notifications
 - **PostgreSQL**: Existing studio database server
 - **Redis**: Local — JWT blacklist, Celery broker, result backend
 - **LDAP**: Authenticates against studio Active Directory
 - **ShotGrid**: Links transfers to shots/assets, creates versions
 - **Network paths**: `/mnt/staging` → `/mnt/production`
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, data flow, component diagrams |
+| [docs/API.md](docs/API.md) | Complete REST API reference with examples |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Production deployment, systemd, LDAP, ShotGrid setup |
 
 ## Database Migrations
 
@@ -202,20 +244,37 @@ databridge-pipeline/
 │   │   ├── schemas/         # Pydantic schemas
 │   │   ├── services/        # Business logic layer
 │   │   ├── tasks/           # Celery background tasks
+│   │   ├── middleware/       # Request logging
 │   │   └── main.py          # FastAPI app entry point
 │   ├── scripts/             # DB setup, seed data
+│   ├── tests/               # pytest test suite
 │   ├── alembic.ini
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
 │   │   ├── api/             # Axios API client
 │   │   ├── components/      # React components
-│   │   ├── hooks/           # Custom hooks
+│   │   ├── hooks/           # Custom hooks (useAuth, useRole)
 │   │   ├── pages/           # Route pages
 │   │   ├── store/           # Zustand stores
 │   │   ├── types/           # TypeScript types
 │   │   └── utils/           # Formatters, constants
 │   ├── package.json
 │   └── vite.config.ts
+├── docs/
+│   ├── ARCHITECTURE.md      # System design
+│   ├── API.md               # API reference
+│   └── DEPLOYMENT.md        # Production guide
+├── scripts/
+│   ├── databridge.service   # Systemd service (app)
+│   ├── databridge-celery.service  # Systemd service (workers)
+│   ├── setup.sh             # Initial setup
+│   └── init_db.sh           # DB initialization
+├── .env.example
+├── .gitignore
 └── README.md
 ```
+
+## License
+
+Internal studio tool — proprietary.

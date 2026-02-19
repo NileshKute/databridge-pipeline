@@ -1,0 +1,14 @@
+[Unit]
+Description=DataBridge Celery Worker
+After=network.target redis.service
+
+[Service]
+Type=simple
+User=databridge
+WorkingDirectory=/opt/databridge-pipeline/backend
+ExecStart=/opt/databridge-pipeline/backend/.venv/bin/celery -A app.core.celery_app worker -l info -Q scanning,transfer,notifications --concurrency=4
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
