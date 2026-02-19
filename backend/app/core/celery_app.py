@@ -22,9 +22,12 @@ celery_app.conf.update(
     task_time_limit=7200,
     task_routes={
         "backend.app.tasks.scanning.*": {"queue": "scanning"},
-        "backend.app.tasks.transfer_tasks.*": {"queue": "transfer"},
-        "backend.app.tasks.notification_tasks.*": {"queue": "notifications"},
+        "backend.app.tasks.transfer.*": {"queue": "transfer"},
+        "backend.app.tasks.notifications.*": {"queue": "notifications"},
+        "backend.app.tasks.maintenance.*": {"queue": "default"},
     },
 )
 
-celery_app.autodiscover_tasks(["backend.app.tasks"])
+celery_app.autodiscover_tasks([
+    "backend.app.tasks",
+])
