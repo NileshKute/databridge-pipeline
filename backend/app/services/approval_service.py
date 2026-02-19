@@ -7,6 +7,7 @@ from typing import Dict, List, Optional
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from backend.app.models.approval import Approval, ApprovalStatus
 from backend.app.models.history import TransferHistory
@@ -54,31 +55,37 @@ class ApprovalService:
     async def get_pending(self, user: User, db: AsyncSession) -> List[Transfer]:
         role = user.role.value if hasattr(user.role, "value") else user.role
 
+        base = select(Transfer).options(
+            selectinload(Transfer.artist),
+            selectinload(Transfer.files),
+            selectinload(Transfer.approvals).selectinload(Approval.approver),
+        )
+
         if role == "admin":
             statuses = [
                 TransferStatus.PENDING_TEAM_LEAD,
                 TransferStatus.PENDING_SUPERVISOR,
                 TransferStatus.PENDING_LINE_PRODUCER,
             ]
-            q = select(Transfer).where(Transfer.status.in_(statuses))
+            q = base.where(Transfer.status.in_(statuses))
         elif role == "team_lead":
-            q = select(Transfer).where(Transfer.status == TransferStatus.PENDING_TEAM_LEAD)
+            q = base.where(Transfer.status == TransferStatus.PENDING_TEAM_LEAD)
         elif role == "supervisor":
-            q = select(Transfer).where(Transfer.status == TransferStatus.PENDING_SUPERVISOR)
+            q = base.where(Transfer.status == TransferStatus.PENDING_SUPERVISOR)
         elif role == "line_producer":
-            q = select(Transfer).where(Transfer.status == TransferStatus.PENDING_LINE_PRODUCER)
+            q = base.where(Transfer.status == TransferStatus.PENDING_LINE_PRODUCER)
         elif role == "data_team":
-            q = select(Transfer).where(
+            q = base.where(
                 Transfer.status.in_([TransferStatus.APPROVED, TransferStatus.SCAN_PASSED])
             )
         elif role == "it_team":
-            q = select(Transfer).where(Transfer.status == TransferStatus.READY_FOR_TRANSFER)
+            q = base.where(Transfer.status == TransferStatus.READY_FOR_TRANSFER)
         else:
             return []
 
         q = q.order_by(Transfer.created_at.desc())
         result = await db.execute(q)
-        return list(result.scalars().all())
+        return list(result.scalars().unique().all())
 
     async def get_pending_count(self, user: User, db: AsyncSession) -> int:
         items = await self.get_pending(user, db)
@@ -172,7 +179,15 @@ class ApprovalService:
 
         await db.flush()
         await db.commit()
-        await db.refresh(transfer)
+
+        refreshed = await db.execute(
+            select(Transfer).options(
+                selectinload(Transfer.artist),
+                selectinload(Transfer.files),
+                selectinload(Transfer.approvals).selectinload(Approval.approver),
+            ).where(Transfer.id == transfer.id)
+        )
+        transfer = refreshed.scalar_one()
 
         logger.info(
             "Transfer %s approved at %s by %s → %s",
@@ -277,7 +292,15 @@ class ApprovalService:
 
         await db.flush()
         await db.commit()
-        await db.refresh(transfer)
+
+        refreshed = await db.execute(
+            select(Transfer).options(
+                selectinload(Transfer.artist),
+                selectinload(Transfer.files),
+                selectinload(Transfer.approvals).selectinload(Approval.approver),
+            ).where(Transfer.id == transfer.id)
+        )
+        transfer = refreshed.scalar_one()
 
         logger.info(
             "Transfer %s rejected at %s by %s: %s",
@@ -292,6 +315,7 @@ class ApprovalService:
     ) -> List[ApprovalChainItem]:
         result = await db.execute(
             select(Approval)
+            .options(selectinload(Approval.approver))
             .where(Approval.transfer_id == transfer_id)
             .order_by(Approval.id)
         )
@@ -386,7 +410,15 @@ class ApprovalService:
 
         await db.flush()
         await db.commit()
-        await db.refresh(transfer)
+
+        refreshed = await db.execute(
+            select(Transfer).options(
+                selectinload(Transfer.artist),
+                selectinload(Transfer.files),
+                selectinload(Transfer.approvals).selectinload(Approval.approver),
+            ).where(Transfer.id == transfer.id)
+        )
+        transfer = refreshed.scalar_one()
 
         logger.info(
             "Admin override: %s %s → %s by %s: %s",

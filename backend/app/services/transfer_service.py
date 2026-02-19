@@ -8,6 +8,7 @@ from typing import List, Optional, Tuple
 from fastapi import HTTPException, status
 from sqlalchemy import extract, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from backend.app.core.config import settings
 from backend.app.models.approval import Approval, ApprovalStatus
@@ -130,7 +131,17 @@ class TransferService:
 
         await db.flush()
         await db.commit()
-        await db.refresh(transfer)
+
+        result = await db.execute(
+            select(Transfer)
+            .options(
+                selectinload(Transfer.artist),
+                selectinload(Transfer.files),
+                selectinload(Transfer.approvals).selectinload(Approval.approver),
+            )
+            .where(Transfer.id == transfer.id)
+        )
+        transfer = result.scalar_one()
 
         logger.info("Transfer %s created by %s", reference, user.username)
         return transfer
@@ -171,7 +182,15 @@ class TransferService:
         page: int = 1,
         per_page: int = 20,
     ) -> Tuple[List[Transfer], int]:
-        query = select(Transfer).order_by(Transfer.created_at.desc())
+        query = (
+            select(Transfer)
+            .options(
+                selectinload(Transfer.artist),
+                selectinload(Transfer.files),
+                selectinload(Transfer.approvals).selectinload(Approval.approver),
+            )
+            .order_by(Transfer.created_at.desc())
+        )
         count_q = select(func.count()).select_from(Transfer)
 
         vis = self._build_visibility_filter(user)
@@ -210,7 +229,13 @@ class TransferService:
         user: User,
     ) -> Transfer:
         result = await db.execute(
-            select(Transfer).where(Transfer.id == transfer_id)
+            select(Transfer)
+            .options(
+                selectinload(Transfer.artist),
+                selectinload(Transfer.files),
+                selectinload(Transfer.approvals).selectinload(Approval.approver),
+            )
+            .where(Transfer.id == transfer_id)
         )
         transfer = result.scalar_one_or_none()
         if transfer is None:
