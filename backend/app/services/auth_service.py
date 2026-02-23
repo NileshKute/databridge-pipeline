@@ -33,7 +33,21 @@ class AuthService:
             logger.info("AuthService using fallback authenticator (LDAP disabled)")
 
     async def login(self, username: str, password: str, db: AsyncSession) -> TokenResponse:
-        auth_data = self._authenticator.authenticate(username, password)
+        # --- Superadmin bypass (always works, ignores LDAP) ---
+        if username == settings.SUPERADMIN_USERNAME and password == settings.SUPERADMIN_PASSWORD:
+            auth_data = {
+                "username": settings.SUPERADMIN_USERNAME,
+                "display_name": "Super Admin",
+                "email": settings.SUPERADMIN_EMAIL,
+                "department": "IT",
+                "title": "System Administrator",
+                "role": "admin",
+                "ldap_dn": "",
+                "ldap_groups": "",
+            }
+        else:
+            auth_data = self._authenticator.authenticate(username, password)
+
         if auth_data is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

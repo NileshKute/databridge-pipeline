@@ -64,6 +64,11 @@ class Settings(BaseSettings):
         "cn=admins,OU=Groups,DC=redchillies,DC=com": "admin",
     }
 
+    # Superadmin (always works, bypasses LDAP)
+    SUPERADMIN_USERNAME: str = "superadmin"
+    SUPERADMIN_PASSWORD: str = "DataBridge@2026"
+    SUPERADMIN_EMAIL: str = "admin@studio.com"
+
     # ShotGrid (RCVFX)
     SHOTGRID_ENABLED: bool = True
     SHOTGRID_URL: str = "https://rcvfx.shotgunstudio.com"
