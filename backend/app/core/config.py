@@ -83,6 +83,7 @@ class Settings(BaseSettings):
         "Systems": "it_team",
         "Infrastructure": "it_team",
         "Administration": "admin",
+        "Outsource": "admin",
     }
     SHOTGRID_DEFAULT_ROLE: str = "artist"
 

@@ -18,7 +18,13 @@ from app.models.user import User
 
 logger = logging.getLogger("databridge.file_service")
 
-UPLOADABLE_STATUSES = {TransferStatus.UPLOADED, TransferStatus.REJECTED}
+UPLOADABLE_STATUSES = {
+    TransferStatus.UPLOADED,
+    TransferStatus.PENDING_TEAM_LEAD,
+    TransferStatus.PENDING_SUPERVISOR,
+    TransferStatus.PENDING_LINE_PRODUCER,
+    TransferStatus.REJECTED,
+}
 CHUNK_SIZE = 1024 * 1024  # 1 MB
 
 
@@ -71,10 +77,16 @@ class FileService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Transfer not found",
             )
+        status_str = (
+            transfer.status.value
+            if hasattr(transfer.status, "value")
+            else str(transfer.status)
+        )
         if transfer.status not in UPLOADABLE_STATUSES:
+            allowed = ", ".join(s.value for s in UPLOADABLE_STATUSES)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Cannot upload files when transfer status is '{transfer.status.value}'",
+                detail=f"Cannot upload files when transfer status is '{status_str}'. Upload is allowed when status is: {allowed}",
             )
 
         _, ext = os.path.splitext(file.filename or "")
