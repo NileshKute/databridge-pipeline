@@ -7,9 +7,9 @@ interface Props {
 }
 
 const ACTION_COLORS: Record<string, string> = {
-  created: "bg-accent-cyan",
-  uploaded: "bg-cyan-400",
-  submitted: "bg-cyan-400",
+  created: "bg-primary-500",
+  uploaded: "bg-violet-400",
+  submitted: "bg-violet-400",
   approved: "bg-emerald-400",
   rejected: "bg-rose-400",
   scan_started: "bg-blue-400",

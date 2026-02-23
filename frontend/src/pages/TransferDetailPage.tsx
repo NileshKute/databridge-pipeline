@@ -263,7 +263,7 @@ function InfoCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-bg-card border border-surface-700 rounded-xl">
+    <div className="bg-surface-900 border border-surface-600 rounded-xl">
       <div className="flex items-center gap-2 px-5 py-3.5 border-b border-surface-700">
         <Icon className="w-4 h-4 text-text-muted" />
         <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">
@@ -285,7 +285,7 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-bg-card border border-surface-700 rounded-xl">
+    <div className="bg-surface-900 border border-surface-600 rounded-xl">
       <div className="flex items-center gap-2 px-5 py-3.5 border-b border-surface-700">
         <Icon className="w-4 h-4 text-text-muted" />
         <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">
@@ -361,7 +361,7 @@ function DetailedApprovalChain({ chain }: { chain: ApprovalChainItem[] }) {
                   !isCurrent &&
                   "border-surface-700 bg-surface-800/30",
                 isCurrent &&
-                  "border-cyan-600/60 bg-cyan-950/30 ring-1 ring-cyan-500/20",
+                  "border-primary-600/60 bg-primary-900/30 ring-1 ring-primary-500/20",
               )}
             >
               <p className="text-xs font-semibold text-text-secondary">
@@ -373,7 +373,7 @@ function DetailedApprovalChain({ chain }: { chain: ApprovalChainItem[] }) {
                 )}
                 {isRejected && <X className="w-3.5 h-3.5 text-rose-400" />}
                 {isCurrent && (
-                  <Clock className="w-3.5 h-3.5 text-accent-cyan animate-pulse" />
+                  <Clock className="w-3.5 h-3.5 text-primary-400 animate-pulse" />
                 )}
                 <span
                   className={clsx(
@@ -382,7 +382,7 @@ function DetailedApprovalChain({ chain }: { chain: ApprovalChainItem[] }) {
                     isRejected && "text-rose-400",
                     isSkipped && "text-surface-500",
                     isPending && !isCurrent && "text-text-muted",
-                    isCurrent && "text-accent-cyan",
+                    isCurrent && "text-primary-400",
                   )}
                 >
                   {isCurrent ? "Awaiting" : item.status}

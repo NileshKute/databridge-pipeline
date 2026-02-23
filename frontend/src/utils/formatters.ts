@@ -27,7 +27,7 @@ export function formatRelativeTime(date: string | Date | null | undefined): stri
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  uploaded: "text-accent-cyan bg-cyan-950 border-cyan-800",
+  uploaded: "text-primary-400 bg-primary-900 border-primary-800",
   pending_team_lead: "text-accent-amber bg-amber-950 border-amber-800",
   pending_supervisor: "text-accent-amber bg-amber-950 border-amber-800",
   pending_line_producer: "text-accent-amber bg-amber-950 border-amber-800",
@@ -36,7 +36,7 @@ const STATUS_COLORS: Record<string, string> = {
   scan_passed: "text-accent-emerald bg-emerald-950 border-emerald-800",
   scan_failed: "text-accent-rose bg-rose-950 border-rose-800",
   copying: "text-blue-400 bg-blue-950 border-blue-800",
-  ready_for_transfer: "text-accent-cyan bg-cyan-950 border-cyan-800",
+  ready_for_transfer: "text-primary-400 bg-primary-900 border-primary-800",
   transferring: "text-blue-400 bg-blue-950 border-blue-800",
   verifying: "text-blue-400 bg-blue-950 border-blue-800",
   transferred: "text-accent-violet bg-violet-950 border-violet-800",

@@ -32,6 +32,20 @@ class AuthService:
             self._authenticator = fallback_authenticator
             logger.info("AuthService using fallback authenticator (LDAP disabled)")
 
+    def _map_department_to_role(self, department: str) -> str:
+        """Map ShotGrid department name to app role."""
+        if not department:
+            return settings.SHOTGRID_DEFAULT_ROLE
+        dept_map = settings.SHOTGRID_DEPARTMENT_ROLE_MAP
+        dept_lower = department.strip().lower()
+        for dept_name, role in dept_map.items():
+            if dept_name.lower() == dept_lower:
+                return role
+        for dept_name, role in dept_map.items():
+            if dept_name.lower() in dept_lower or dept_lower in dept_name.lower():
+                return role
+        return settings.SHOTGRID_DEFAULT_ROLE
+
     async def login(self, username: str, password: str, db: AsyncSession) -> TokenResponse:
         # --- Superadmin bypass (always works, ignores LDAP) ---
         if username == settings.SUPERADMIN_USERNAME and password == settings.SUPERADMIN_PASSWORD:
@@ -39,22 +53,61 @@ class AuthService:
                 "username": settings.SUPERADMIN_USERNAME,
                 "display_name": "Super Admin",
                 "email": settings.SUPERADMIN_EMAIL,
-                "department": "IT",
+                "department": "Administration",
                 "title": "System Administrator",
                 "role": "admin",
                 "ldap_dn": "",
                 "ldap_groups": "",
+                "shotgrid_user_id": None,
             }
         else:
-            auth_data = self._authenticator.authenticate(username, password)
+            # Step 1: Authenticate via LDAP (verify credentials only)
+            ldap_info = self._authenticator.authenticate(username, password)
+            if ldap_info is None:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid credentials",
+                )
 
-        if auth_data is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid credentials",
-            )
+            # Step 2: Get role from ShotGrid Department
+            role = settings.SHOTGRID_DEFAULT_ROLE
+            sg_department = ""
+            sg_user_id = None
 
-        result = await db.execute(select(User).where(User.username == username))
+            if settings.SHOTGRID_ENABLED:
+                try:
+                    from app.integrations.shotgrid import shotgrid_client
+                    if shotgrid_client and getattr(shotgrid_client, "enabled", True):
+                        sg_user = shotgrid_client.get_user_by_login(username)
+                        if not sg_user:
+                            sg_user = shotgrid_client.get_user_by_email(ldap_info.get("email") or "")
+                        if sg_user:
+                            sg_user_id = sg_user.get("id")
+                            sg_department_raw = sg_user.get("department")
+                            if isinstance(sg_department_raw, dict):
+                                sg_department = sg_department_raw.get("name", "")
+                            elif isinstance(sg_department_raw, list) and len(sg_department_raw) > 0:
+                                first = sg_department_raw[0]
+                                sg_department = first.get("name", "") if isinstance(first, dict) else str(first)
+                            else:
+                                sg_department = str(sg_department_raw or "")
+                            role = self._map_department_to_role(sg_department)
+                except Exception as e:
+                    logger.warning("ShotGrid lookup failed for %s, using default role: %s", username, e)
+
+            auth_data = {
+                "username": username,
+                "display_name": ldap_info.get("display_name", username),
+                "email": ldap_info.get("email", ""),
+                "department": sg_department or ldap_info.get("department", ""),
+                "title": ldap_info.get("title", ""),
+                "role": role,
+                "ldap_dn": ldap_info.get("ldap_dn", ""),
+                "ldap_groups": ldap_info.get("ldap_groups", ""),
+                "shotgrid_user_id": sg_user_id,
+            }
+
+        result = await db.execute(select(User).where(User.username == auth_data["username"]))
         user = result.scalar_one_or_none()
 
         if user is None:
@@ -67,11 +120,12 @@ class AuthService:
                 title=auth_data.get("title"),
                 ldap_dn=auth_data.get("ldap_dn"),
                 ldap_groups=auth_data.get("ldap_groups", ""),
+                shotgrid_user_id=auth_data.get("shotgrid_user_id"),
                 is_active=True,
             )
             db.add(user)
             await db.flush()
-            logger.info("Created new user from auth: %s (role=%s)", username, auth_data["role"])
+            logger.info("Created new user from auth: %s (role=%s)", auth_data["username"], auth_data["role"])
         else:
             user.display_name = auth_data["display_name"]
             user.email = auth_data["email"]
@@ -80,16 +134,8 @@ class AuthService:
             user.title = auth_data.get("title")
             user.ldap_dn = auth_data.get("ldap_dn")
             user.ldap_groups = auth_data.get("ldap_groups", "")
-
-        if settings.SHOTGRID_ENABLED and user.shotgrid_user_id is None:
-            try:
-                from app.services.shotgrid_service import shotgrid_service
-                sg_user_id = await shotgrid_service.resolve_user(username)
-                if sg_user_id:
-                    user.shotgrid_user_id = sg_user_id
-                    logger.info("Linked ShotGrid user id=%d for %s", sg_user_id, username)
-            except Exception:
-                logger.debug("ShotGrid user resolution skipped for %s", username)
+            if auth_data.get("shotgrid_user_id") is not None:
+                user.shotgrid_user_id = auth_data["shotgrid_user_id"]
 
         user.last_login = datetime.now(timezone.utc)
         await db.flush()

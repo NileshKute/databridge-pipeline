@@ -23,24 +23,24 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg-primary relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] relative overflow-hidden">
       <div
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse at 50% 0%, rgba(34,211,238,0.08) 0%, transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(167,139,250,0.06) 0%, transparent 50%)",
+            "radial-gradient(ellipse at 50% 50%, rgba(220,38,38,0.12) 0%, transparent 60%), radial-gradient(ellipse at 20% 80%, rgba(220,38,38,0.06) 0%, transparent 50%)",
         }}
       />
 
       <div className="relative z-10 w-full max-w-md px-4">
-        <div className="bg-bg-card border border-surface-700 rounded-xl shadow-2xl p-8">
+        <div className="bg-surface-900 border border-surface-600 rounded-xl shadow-2xl p-8">
           {/* Logo */}
           <div className="flex items-center justify-center gap-3 mb-8">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-bold text-lg font-mono">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-700 to-primary-500 flex items-center justify-center text-white font-bold text-lg font-mono">
               D
             </div>
             <span className="text-2xl font-bold text-text-primary tracking-tight">
-              Data<span className="text-accent-cyan">Bridge</span>
+              Data<span className="text-primary-400">Bridge</span>
             </span>
           </div>
 
@@ -56,7 +56,7 @@ export default function LoginPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter your username"
-                  className="input-field pl-10"
+                  className="input-field pl-10 bg-surface-850 border-surface-600 focus:border-primary-500 focus:ring-primary-500/20"
                   required
                   autoFocus
                   autoComplete="username"
@@ -75,7 +75,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="input-field pl-10"
+                  className="input-field pl-10 bg-surface-850 border-surface-600 focus:border-primary-500 focus:ring-primary-500/20"
                   required
                   autoComplete="current-password"
                 />
@@ -83,7 +83,7 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div className="bg-rose-950/50 border border-rose-800 rounded-lg p-3 text-accent-rose text-sm">
+              <div className="bg-primary-900/30 border border-primary-700 rounded-lg p-3 text-primary-400 text-sm">
                 {error}
               </div>
             )}
@@ -91,7 +91,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading || !username || !password}
-              className="w-full py-2.5 rounded-lg font-medium text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 flex items-center justify-center gap-2"
+              className="w-full py-2.5 rounded-lg font-medium text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-primary-700 to-primary-500 hover:from-primary-600 hover:to-primary-400 flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>

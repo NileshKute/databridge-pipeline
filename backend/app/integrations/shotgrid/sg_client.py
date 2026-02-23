@@ -118,19 +118,21 @@ class ShotGridClient:
     # ── Users ────────────────────────────────────────────────────
 
     def get_user_by_login(self, login: str) -> Optional[Dict[str, Any]]:
+        """Find HumanUser by login field, including their department."""
         return self._safe_call(
             self._sg.find_one,
             "HumanUser",
             [["login", "is", login]],
-            ["id", "name", "login", "email", "department"],
+            ["id", "name", "login", "email", "department", "permission_rule_set", "sg_status_list"],
         )
 
     def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+        """Alternative lookup by email."""
         return self._safe_call(
             self._sg.find_one,
             "HumanUser",
             [["email", "is", email]],
-            ["id", "name", "login", "email", "department"],
+            ["id", "name", "login", "email", "department", "permission_rule_set", "sg_status_list"],
         )
 
     # ── Transfer completion ──────────────────────────────────────

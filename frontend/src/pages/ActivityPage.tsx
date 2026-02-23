@@ -15,9 +15,9 @@ interface ActivityResponse {
 }
 
 const ACTION_COLORS: Record<string, string> = {
-  created: "text-accent-cyan",
-  uploaded: "text-cyan-400",
-  submitted: "text-cyan-400",
+  created: "text-primary-400",
+  uploaded: "text-violet-400",
+  submitted: "text-violet-400",
   approved: "text-emerald-400",
   rejected: "text-accent-rose",
   scan_started: "text-blue-400",
@@ -105,7 +105,7 @@ export default function ActivityPage() {
           description={search ? "No results for your search" : "No activity recorded yet"}
         />
       ) : (
-        <div className="bg-bg-card border border-surface-700 rounded-xl">
+        <div className="bg-surface-900 border border-surface-600 rounded-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -134,15 +134,15 @@ export default function ActivityPage() {
                   return (
                     <tr
                       key={entry.id}
-                      className="border-b border-surface-800 hover:bg-bg-card-hover/30 transition-colors"
+                      className="border-b border-surface-800 hover:bg-surface-800 transition-colors"
                     >
                       <td className="py-2.5 px-4 font-mono text-xs text-text-muted whitespace-nowrap">
                         {formatDateTime(entry.created_at)}
                       </td>
-                      <td className="py-2.5 px-4 font-mono text-xs text-accent-cyan">
+                      <td className="py-2.5 px-4 font-mono text-xs text-primary-400">
                         #{entry.transfer_id}
                       </td>
-                      <td className="py-2.5 px-4 text-xs text-accent-cyan">
+                      <td className="py-2.5 px-4 text-xs text-primary-400">
                         {entry.user_id ? `User #${entry.user_id}` : "System"}
                       </td>
                       <td className="py-2.5 px-4">

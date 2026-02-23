@@ -54,15 +54,37 @@ class Settings(BaseSettings):
     LDAP_EMAIL_ATTR: str = "mail"
     LDAP_DISPLAY_NAME_ATTR: str = "displayName"
     LDAP_USER_SEARCH_FILTER: str = "(&(objectClass=user)({user_attr}={username}))"
-    LDAP_ROLE_MAP: Dict[str, str] = {
-        "cn=artists,OU=Groups,DC=redchillies,DC=com": "artist",
-        "cn=team-leads,OU=Groups,DC=redchillies,DC=com": "team_lead",
-        "cn=supervisors,OU=Groups,DC=redchillies,DC=com": "supervisor",
-        "cn=line-producers,OU=Groups,DC=redchillies,DC=com": "line_producer",
-        "cn=data-team,OU=Groups,DC=redchillies,DC=com": "data_team",
-        "cn=it-team,OU=Groups,DC=redchillies,DC=com": "it_team",
-        "cn=admins,OU=Groups,DC=redchillies,DC=com": "admin",
+
+    # ShotGrid Department → App Role (LDAP authenticates; ShotGrid department determines role)
+    SHOTGRID_DEPARTMENT_ROLE_MAP: Dict[str, str] = {
+        "VFX": "artist",
+        "Animation": "artist",
+        "Lighting": "artist",
+        "Compositing": "artist",
+        "FX": "artist",
+        "Matchmove": "artist",
+        "Textures": "artist",
+        "Modeling": "artist",
+        "Rigging": "artist",
+        "Layout": "artist",
+        "Art": "artist",
+        "Editorial": "artist",
+        "Team Lead": "team_lead",
+        "Lead": "team_lead",
+        "Supervision": "supervisor",
+        "VFX Supervision": "supervisor",
+        "Production": "line_producer",
+        "Line Production": "line_producer",
+        "Production Management": "line_producer",
+        "Data Management": "data_team",
+        "Data": "data_team",
+        "Pipeline": "data_team",
+        "IT": "it_team",
+        "Systems": "it_team",
+        "Infrastructure": "it_team",
+        "Administration": "admin",
     }
+    SHOTGRID_DEFAULT_ROLE: str = "artist"
 
     # Superadmin (always works, bypasses LDAP)
     SUPERADMIN_USERNAME: str = "superadmin"

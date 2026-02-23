@@ -58,7 +58,7 @@ export default function ApprovalsPage() {
           icon={CheckCircle}
         />
       ) : (
-        <div className="bg-bg-card border border-surface-700 rounded-xl overflow-x-auto">
+        <div className="bg-surface-900 border border-surface-600 rounded-xl overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-surface-700 text-text-muted">
@@ -86,12 +86,12 @@ export default function ApprovalsPage() {
               {(pendingApprovals || []).map((t) => (
                 <tr
                   key={t.id}
-                  className="border-b border-surface-800 hover:bg-bg-card-hover/50 transition-colors"
+                  className="border-b border-surface-800 hover:bg-surface-800 transition-colors"
                 >
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-surface-800 flex items-center justify-center shrink-0">
-                        <FolderSync className="w-4 h-4 text-accent-cyan" />
+                        <FolderSync className="w-4 h-4 text-primary-400" />
                       </div>
                       <div className="min-w-0">
                         <p className="text-text-primary font-medium truncate max-w-[200px]">
@@ -117,7 +117,7 @@ export default function ApprovalsPage() {
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => navigate(`/transfers/${t.id}`)}
-                        className="p-1.5 rounded-lg text-text-muted hover:text-accent-cyan hover:bg-cyan-950/30 transition-colors"
+                        className="p-1.5 rounded-lg text-text-muted hover:text-primary-400 hover:bg-primary-900/30 transition-colors"
                         title="View"
                       >
                         <Eye className="w-4 h-4" />

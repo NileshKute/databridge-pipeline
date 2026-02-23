@@ -7,18 +7,18 @@ interface PipelineStep {
 }
 
 const STEPS: PipelineStep[] = [
-  { emoji: "📤", label: "Artist Upload", color: "border-cyan-500 bg-cyan-950/40" },
+  { emoji: "📤", label: "Artist Upload", color: "border-primary-500 bg-primary-900/40" },
   { emoji: "👥", label: "Team Lead", color: "border-amber-500 bg-amber-950/40" },
   { emoji: "🎬", label: "Supervisor", color: "border-amber-500 bg-amber-950/40" },
   { emoji: "💰", label: "Line Producer", color: "border-violet-500 bg-violet-950/40" },
   { emoji: "🔍", label: "Data Team Scan", color: "border-blue-500 bg-blue-950/40" },
-  { emoji: "🚀", label: "IT Transfer", color: "border-rose-500 bg-rose-950/40" },
+  { emoji: "🚀", label: "IT Transfer", color: "border-primary-500 bg-primary-900/40" },
   { emoji: "✅", label: "Production", color: "border-emerald-500 bg-emerald-950/40" },
 ];
 
 export default function PipelineVisual() {
   return (
-    <div className="bg-bg-card border border-surface-700 rounded-xl p-6">
+    <div className="bg-surface-900 border border-surface-600 rounded-xl p-6">
       <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-6">
         Pipeline Flow
       </h3>

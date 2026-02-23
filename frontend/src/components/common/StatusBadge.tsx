@@ -7,23 +7,27 @@ interface Props {
 }
 
 const DOT_COLORS: Record<string, string> = {
-  cyan: "bg-cyan-400",
+  cyan: "bg-primary-400",
   amber: "bg-amber-400",
   emerald: "bg-emerald-400",
   blue: "bg-blue-400",
-  rose: "bg-rose-400",
+  rose: "bg-primary-400",
   violet: "bg-violet-400",
-  gray: "bg-surface-400",
+  gray: "bg-surface-500",
+  primary: "bg-primary-400",
+  muted: "bg-text-muted",
 };
 
 const BG_COLORS: Record<string, string> = {
-  cyan: "bg-cyan-950/60 text-cyan-300 border-cyan-800/50",
+  cyan: "bg-primary-900/40 text-primary-300 border-primary-800/50",
   amber: "bg-amber-950/60 text-amber-300 border-amber-800/50",
   emerald: "bg-emerald-950/60 text-emerald-300 border-emerald-800/50",
   blue: "bg-blue-950/60 text-blue-300 border-blue-800/50",
-  rose: "bg-rose-950/60 text-rose-300 border-rose-800/50",
+  rose: "bg-primary-900/40 text-primary-300 border-primary-800/50",
   violet: "bg-violet-950/60 text-violet-300 border-violet-800/50",
-  gray: "bg-surface-800 text-surface-300 border-surface-600",
+  gray: "bg-surface-800 text-text-secondary border-surface-600",
+  primary: "bg-primary-900/40 text-primary-300 border-primary-800/50",
+  muted: "bg-surface-800 text-text-muted border-surface-600",
 };
 
 export default function StatusBadge({ status, className }: Props) {

@@ -28,32 +28,32 @@ export default function StatsGrid({ stats }: Props) {
       value: stats?.total ?? "—",
       sub: "All time",
       icon: ArrowRightLeft,
-      accent: "text-accent-cyan",
-      border: "border-t-cyan-400",
+      accent: "text-primary-500",
+      border: "border-t-primary-500",
     },
     {
       label: "PENDING APPROVAL",
       value: stats?.pending ?? "—",
       sub: "Awaiting review",
       icon: Hourglass,
-      accent: "text-accent-amber",
-      border: "border-t-amber-400",
+      accent: "text-amber-500",
+      border: "border-t-amber-500",
     },
     {
       label: "COMPLETED",
       value: stats?.transferred ?? "—",
       sub: "Successfully delivered",
       icon: CheckCircle2,
-      accent: "text-accent-emerald",
-      border: "border-t-emerald-400",
+      accent: "text-emerald-500",
+      border: "border-t-emerald-500",
     },
     {
       label: "REJECTED",
       value: stats?.rejected ?? "—",
       sub: "Sent back for revision",
       icon: XCircle,
-      accent: "text-accent-rose",
-      border: "border-t-rose-400",
+      accent: "text-primary-500",
+      border: "border-t-primary-700",
     },
     {
       label: "AVG PIPELINE TIME",
@@ -63,8 +63,8 @@ export default function StatsGrid({ stats }: Props) {
           : "—",
       sub: "Upload to production",
       icon: Clock,
-      accent: "text-accent-violet",
-      border: "border-t-violet-400",
+      accent: "text-violet-500",
+      border: "border-t-violet-500",
     },
   ];
 
@@ -74,7 +74,7 @@ export default function StatsGrid({ stats }: Props) {
         <div
           key={c.label}
           className={clsx(
-            "bg-bg-card border border-surface-700 rounded-xl p-5 border-t-2",
+            "bg-surface-900 border border-surface-600 rounded-xl p-5 border-t-2",
             c.border,
           )}
         >

@@ -85,12 +85,12 @@ export default function ShotGridLinker({ value, onChange }: Props) {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-between w-full px-4 py-3 text-sm text-text-secondary hover:bg-bg-card-hover/30 transition-colors"
+        className="flex items-center justify-between w-full px-4 py-3 text-sm text-text-secondary hover:bg-surface-800 transition-colors"
       >
         <span className="font-medium">ShotGrid Linking</span>
         <div className="flex items-center gap-2">
           {value.entityName && (
-            <span className="text-xs text-accent-cyan">{value.entityName}</span>
+            <span className="text-xs text-primary-400">{value.entityName}</span>
           )}
           {open ? (
             <ChevronUp className="w-4 h-4" />
@@ -133,14 +133,14 @@ export default function ShotGridLinker({ value, onChange }: Props) {
               <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
                 Entity Type
               </label>
-              <div className="flex items-center bg-bg-secondary rounded-lg p-0.5 w-fit">
+              <div className="flex items-center bg-surface-850 rounded-lg p-0.5 w-fit">
                 <button
                   type="button"
                   onClick={() => handleTypeChange("Shot")}
                   className={clsx(
                     "flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors",
                     value.entityType === "Shot"
-                      ? "bg-accent-cyan/20 text-accent-cyan"
+                      ? "bg-primary-600/20 text-primary-400"
                       : "text-text-muted hover:text-text-secondary",
                   )}
                 >
@@ -152,7 +152,7 @@ export default function ShotGridLinker({ value, onChange }: Props) {
                   className={clsx(
                     "flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors",
                     value.entityType === "Asset"
-                      ? "bg-accent-cyan/20 text-accent-cyan"
+                      ? "bg-primary-600/20 text-primary-400"
                       : "text-text-muted hover:text-text-secondary",
                   )}
                 >
@@ -194,11 +194,11 @@ export default function ShotGridLinker({ value, onChange }: Props) {
 
           {/* Selected entity info card */}
           {selectedEntity && (
-            <div className="bg-cyan-950/20 border border-cyan-800/40 rounded-lg p-3">
+            <div className="bg-primary-900/20 border border-primary-800/40 rounded-lg p-3">
               <p className="text-xs text-text-muted uppercase tracking-wider mb-1">
                 Linked {value.entityType}
               </p>
-              <p className="text-sm font-medium text-accent-cyan">
+              <p className="text-sm font-medium text-primary-400">
                 {selectedEntity.code ?? selectedEntity.name ?? `#${selectedEntity.id}`}
               </p>
               <p className="text-xs text-text-muted mt-0.5">

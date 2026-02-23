@@ -164,7 +164,7 @@ export default function UploadPage() {
         <button
           type="submit"
           disabled={!canSubmit}
-          className="w-full py-3 rounded-lg font-medium text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 flex items-center justify-center gap-2"
+          className="w-full py-3 rounded-lg font-medium text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-primary-700 to-primary-500 hover:from-primary-600 hover:to-primary-400 flex items-center justify-center gap-2"
         >
           {submitting ? (
             <>

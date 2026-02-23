@@ -54,24 +54,24 @@ export default function ApprovalChain({ approvals, compact = false }: Props) {
               className={clsx(
                 "relative flex items-center justify-center rounded-full border-2 transition-all",
                 compact ? "w-7 h-7" : "w-9 h-9",
-                item.status === "approved" && "border-emerald-500 bg-emerald-950/40",
-                item.status === "rejected" && "border-rose-500 bg-rose-950/40",
+                item.status === "approved" && "border-emerald-500 bg-emerald-500/20",
+                item.status === "rejected" && "border-primary-500 bg-primary-500/20",
                 item.status === "skipped" && "border-surface-500 bg-surface-800",
-                item.status === "pending" && !current && "border-surface-600 bg-surface-800/50",
-                current && "border-accent-cyan bg-cyan-950/40 animate-pulse",
+                item.status === "pending" && !current && "border-surface-600 bg-surface-800",
+                current && "border-primary-400 animate-pulse",
               )}
               title={`${label}: ${item.status}${item.approver_name ? ` (${item.approver_name})` : ""}`}
             >
               {item.status === "approved" ? (
                 <Check className={clsx("text-emerald-400", compact ? "w-3 h-3" : "w-4 h-4")} />
               ) : item.status === "rejected" ? (
-                <X className={clsx("text-rose-400", compact ? "w-3 h-3" : "w-4 h-4")} />
+                <X className={clsx("text-primary-400", compact ? "w-3 h-3" : "w-4 h-4")} />
               ) : (
                 <span
                   className={clsx(
                     "font-bold",
                     compact ? "text-[9px]" : "text-[10px]",
-                    current ? "text-accent-cyan" : "text-text-muted",
+                    current ? "text-primary-400" : "text-text-muted",
                   )}
                 >
                   {abbrev}

@@ -83,18 +83,21 @@ export default function Sidebar() {
         .slice(0, 2)
     : "??";
 
-  const roleConfig = ROLE_CONFIG[role] ?? { label: role, color: "cyan" };
+  const roleConfig = ROLE_CONFIG[role] ?? { label: role, color: "primary" };
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-[260px] bg-bg-secondary border-r border-surface-700 flex flex-col z-40">
+    <aside className="fixed left-0 top-0 bottom-0 w-[260px] bg-surface-950 border-r border-surface-600 flex flex-col z-40">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-surface-700">
-        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm font-mono shrink-0">
+      <div className="flex items-center gap-3 px-5 py-5 border-b border-surface-600">
+        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary-700 to-primary-500 flex items-center justify-center text-white font-bold text-sm font-mono shrink-0">
           D
         </div>
-        <span className="text-lg font-bold text-text-primary tracking-tight">
-          Data<span className="text-accent-cyan">Bridge</span>
-        </span>
+        <div className="flex flex-col">
+          <span className="text-lg font-bold text-text-primary tracking-tight">
+            Data<span className="text-primary-400">Bridge</span>
+          </span>
+          <span className="text-[10px] text-text-muted uppercase tracking-wider">RCVFX</span>
+        </div>
       </div>
 
       {/* Navigation */}
@@ -109,15 +112,15 @@ export default function Sidebar() {
                 clsx(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150",
                   isActive
-                    ? "bg-cyan-950/60 text-accent-cyan"
-                    : "text-text-secondary hover:text-text-primary hover:bg-surface-800/50",
+                    ? "bg-primary-600/20 text-primary-400 border-l-2 border-primary-500"
+                    : "text-text-secondary hover:text-text-primary hover:bg-surface-800",
                 )
               }
             >
               <item.icon className="w-5 h-5 shrink-0" />
               <span className="flex-1">{item.label}</span>
               {item.badge !== undefined && item.badge > 0 && (
-                <span className="bg-accent-cyan/20 text-accent-cyan text-xs font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                <span className="bg-primary-600 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
                   {item.badge > 99 ? "99+" : item.badge}
                 </span>
               )}
@@ -126,9 +129,9 @@ export default function Sidebar() {
       </nav>
 
       {/* User section */}
-      <div className="border-t border-surface-700 p-4">
+      <div className="border-t border-surface-600 p-4">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+          <div className="w-9 h-9 rounded-full bg-primary-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
             {initials}
           </div>
           <div className="flex-1 min-w-0">
@@ -139,7 +142,7 @@ export default function Sidebar() {
           </div>
           <button
             onClick={logout}
-            className="p-1.5 rounded-lg text-text-muted hover:text-accent-rose hover:bg-rose-950/30 transition-colors"
+            className="p-1.5 rounded-lg text-text-muted hover:text-primary-400 hover:bg-primary-900/30 transition-colors"
             title="Logout"
           >
             <LogOut className="w-4 h-4" />

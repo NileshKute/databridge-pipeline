@@ -26,7 +26,7 @@ export default function AppLayout() {
 
   if (isLoading && !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-bg-primary">
+      <div className="min-h-screen flex items-center justify-center bg-surface-950">
         <div className="text-center">
           <LoadingSpinner size="lg" />
           <p className="mt-4 text-text-muted text-sm">Loading DataBridge...</p>
@@ -40,7 +40,7 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-primary">
+    <div className="min-h-screen bg-surface-950">
       <Sidebar />
       <main className="ml-[260px] p-8 min-h-screen">
         <Outlet />

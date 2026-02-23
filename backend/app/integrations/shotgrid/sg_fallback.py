@@ -126,12 +126,30 @@ class MockShotGridClient:
 
     # ── Users ────────────────────────────────────────────────────
 
+    _MOCK_USERS: Dict[str, Dict[str, Any]] = {
+        "artist1": {"id": 101, "login": "artist1", "name": "Sarah Chen", "email": "sarah.chen@studio.com", "department": {"name": "VFX", "id": 1}},
+        "teamlead1": {"id": 102, "login": "teamlead1", "name": "Marcus Johnson", "email": "marcus.j@studio.com", "department": {"name": "Team Lead", "id": 2}},
+        "supervisor1": {"id": 103, "login": "supervisor1", "name": "Kim Tanaka", "email": "kim.t@studio.com", "department": {"name": "Supervision", "id": 3}},
+        "producer1": {"id": 104, "login": "producer1", "name": "Alex Rivera", "email": "alex.r@studio.com", "department": {"name": "Production", "id": 4}},
+        "datateam1": {"id": 105, "login": "datateam1", "name": "Priya Sharma", "email": "priya.s@studio.com", "department": {"name": "Data Management", "id": 5}},
+        "it1": {"id": 106, "login": "it1", "name": "Tom Wilson", "email": "tom.w@studio.com", "department": {"name": "IT", "id": 6}},
+        "admin1": {"id": 107, "login": "admin1", "name": "Root Admin", "email": "admin@studio.com", "department": {"name": "Administration", "id": 7}},
+        "nilesh.kute": {"id": 108, "login": "nilesh.kute", "name": "Nilesh Kute", "email": "nilesh.kute@rcvfx.com", "department": {"name": "Pipeline", "id": 5}},
+        "superadmin": {"id": 999, "login": "superadmin", "name": "Super Admin", "email": "admin@studio.com", "department": {"name": "Administration", "id": 7}},
+    }
+
     def get_user_by_login(self, login: str) -> Optional[Dict[str, Any]]:
-        return {"type": "HumanUser", "id": 201, "name": login.title(), "login": login, "email": f"{login}@studio.local", "department": "VFX"}
+        u = self._MOCK_USERS.get(login)
+        if u:
+            return {"type": "HumanUser", **u}
+        return {"type": "HumanUser", "id": 201, "name": login.title(), "login": login, "email": f"{login}@studio.local", "department": {"name": "VFX", "id": 1}}
 
     def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+        for u in self._MOCK_USERS.values():
+            if u.get("email") == email:
+                return {"type": "HumanUser", **u}
         name = email.split("@")[0].replace(".", " ").title()
-        return {"type": "HumanUser", "id": 201, "name": name, "login": email.split("@")[0], "email": email, "department": "VFX"}
+        return {"type": "HumanUser", "id": 201, "name": name, "login": email.split("@")[0], "email": email, "department": {"name": "VFX", "id": 1}}
 
     # ── Transfer completion (write ops just log) ─────────────────
 

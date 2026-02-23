@@ -61,7 +61,7 @@ export default function ApprovalModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-bg-card border border-surface-700 rounded-xl shadow-2xl w-full max-w-md mx-4">
+      <div className="relative bg-surface-900 border border-surface-600 rounded-xl shadow-2xl w-full max-w-md mx-4">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-surface-700">
           <div className="flex items-center gap-2">

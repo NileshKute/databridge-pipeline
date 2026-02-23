@@ -77,13 +77,13 @@ export default function TransferTable({
           {list.map((t) => (
             <tr
               key={t.id}
-              className="border-b border-surface-800 hover:bg-bg-card-hover/50 cursor-pointer transition-colors"
+              className="border-b border-surface-800 hover:bg-surface-800 cursor-pointer transition-colors"
               onClick={() => navigate(`/transfers/${t.id}`)}
             >
               <td className="py-3 px-4">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-surface-800 flex items-center justify-center shrink-0">
-                    <FolderSync className="w-4 h-4 text-accent-cyan" />
+                    <FolderSync className="w-4 h-4 text-primary-400" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-text-primary font-medium truncate max-w-[200px]">
@@ -127,7 +127,7 @@ export default function TransferTable({
                 >
                   <button
                     onClick={() => navigate(`/transfers/${t.id}`)}
-                    className="p-1.5 rounded-lg text-text-muted hover:text-accent-cyan hover:bg-cyan-950/30 transition-colors"
+                    className="p-1.5 rounded-lg text-text-muted hover:text-primary-400 hover:bg-primary-900/30 transition-colors"
                     title="View"
                   >
                     <Eye className="w-4 h-4" />

@@ -98,15 +98,15 @@ export default function DashboardPage() {
 
       {/* Recent Transfers */}
       <div className="mt-8">
-        <div className="bg-bg-card border border-surface-700 rounded-xl">
-          <div className="p-5 border-b border-surface-700">
+        <div className="bg-surface-900 border border-surface-600 rounded-xl">
+          <div className="p-5 border-b border-surface-600">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">
                 Recent Transfers
               </h3>
               <div className="flex items-center gap-3">
                 {/* Filter pills */}
-                <div className="flex items-center bg-bg-secondary rounded-lg p-0.5">
+                <div className="flex items-center bg-surface-850 rounded-lg p-0.5">
                   {FILTER_PILLS.map((pill) => (
                     <button
                       key={pill.value}
@@ -114,7 +114,7 @@ export default function DashboardPage() {
                       className={clsx(
                         "px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
                         activeFilter === pill.value
-                          ? "bg-accent-cyan/20 text-accent-cyan"
+                          ? "bg-primary-600/20 text-primary-400"
                           : "text-text-muted hover:text-text-secondary",
                       )}
                     >

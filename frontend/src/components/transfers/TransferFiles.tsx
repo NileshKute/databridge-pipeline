@@ -69,7 +69,7 @@ export default function TransferFiles({ files }: Props) {
             return (
               <tr
                 key={f.id}
-                className="border-b border-surface-800 hover:bg-bg-card-hover/30 transition-colors"
+                className="border-b border-surface-800 hover:bg-surface-800 transition-colors"
               >
                 <td className="py-2.5 px-4">
                   <div className="flex items-center gap-2">

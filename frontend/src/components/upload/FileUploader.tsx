@@ -62,18 +62,18 @@ export default function FileUploader({ files, onChange }: Props) {
         className={clsx(
           "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all",
           dragging
-            ? "border-accent-cyan bg-cyan-950/20"
-            : "border-surface-600 hover:border-surface-500 bg-bg-secondary/50",
+            ? "border-primary-500 bg-primary-900/20"
+            : "border-surface-600 hover:border-surface-500 bg-surface-850/50",
         )}
       >
         <Upload
           className={clsx(
             "w-8 h-8 mx-auto mb-3",
-            dragging ? "text-accent-cyan" : "text-text-muted",
+            dragging ? "text-primary-400" : "text-text-muted",
           )}
         />
         <p className="text-sm text-text-secondary">
-          <span className="font-medium text-accent-cyan">Click to browse</span>{" "}
+          <span className="font-medium text-primary-400">Click to browse</span>{" "}
           or drag & drop files here
         </p>
         <p className="text-xs text-text-muted mt-1">All file types accepted</p>
@@ -95,7 +95,7 @@ export default function FileUploader({ files, onChange }: Props) {
           {files.map((f, i) => (
             <div
               key={`${f.name}-${i}`}
-              className="flex items-center justify-between bg-bg-secondary rounded-lg px-3 py-2 border border-surface-700"
+              className="flex items-center justify-between bg-surface-850 rounded-lg px-3 py-2 border border-surface-700"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <FileIcon className="w-4 h-4 text-text-muted shrink-0" />

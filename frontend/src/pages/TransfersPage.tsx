@@ -49,7 +49,7 @@ export default function TransfersPage() {
         onSearchChange={(v) => setSearch(v)}
       />
 
-      <div className="bg-bg-card border border-surface-700 rounded-xl">
+      <div className="bg-surface-900 border border-surface-600 rounded-xl">
         {isLoading ? (
           <div className="py-16">
             <LoadingSpinner />

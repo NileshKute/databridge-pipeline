@@ -21,7 +21,7 @@ const TYPE_ICONS: Record<
   string,
   { icon: typeof Bell; color: string }
 > = {
-  transfer_submitted: { icon: Send, color: "text-accent-cyan" },
+  transfer_submitted: { icon: Send, color: "text-primary-400" },
   transfer_approved: { icon: CheckCircle, color: "text-emerald-400" },
   transfer_rejected: { icon: XCircle, color: "text-accent-rose" },
   scan_complete: { icon: ShieldCheck, color: "text-blue-400" },
@@ -50,14 +50,14 @@ export default function NotificationItem({ notification, onMarkRead }: Props) {
       className={clsx(
         "flex items-start gap-3 p-4 rounded-xl border transition-colors cursor-pointer",
         notification.is_read
-          ? "bg-bg-card border-surface-700 hover:bg-bg-card-hover"
-          : "bg-bg-card border-l-2 border-l-accent-cyan border-t-surface-700 border-r-surface-700 border-b-surface-700 hover:bg-bg-card-hover",
+          ? "bg-surface-900 border-surface-600 hover:bg-surface-800"
+          : "bg-surface-900 border-l-2 border-l-primary-500 border-t-surface-600 border-r-surface-600 border-b-surface-600 hover:bg-surface-800",
       )}
     >
       <div
         className={clsx(
           "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
-          notification.is_read ? "bg-surface-800" : "bg-cyan-950/40",
+          notification.is_read ? "bg-surface-800" : "bg-primary-900/40",
         )}
       >
         <Icon className={clsx("w-4.5 h-4.5", typeConfig.color)} />
@@ -83,7 +83,7 @@ export default function NotificationItem({ notification, onMarkRead }: Props) {
         </p>
       </div>
       {!notification.is_read && (
-        <div className="w-2 h-2 rounded-full bg-accent-cyan shrink-0 mt-2" />
+        <div className="w-2 h-2 rounded-full bg-primary-500 shrink-0 mt-2" />
       )}
     </div>
   );
