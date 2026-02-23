@@ -50,7 +50,7 @@ export default function Sidebar() {
       to: "/upload",
       label: "Upload",
       icon: Upload,
-      visible: isArtist || isAdmin,
+      visible: true,
     },
     {
       to: "/approvals",

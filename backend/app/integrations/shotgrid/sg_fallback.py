@@ -89,6 +89,20 @@ class MockShotGridClient:
                 return p
         return None
 
+    def get_sequences(self, project_id: int) -> List[Dict[str, Any]]:
+        unique_seqs: Dict[int, Dict[str, Any]] = {}
+        for s in _SHOTS.get(project_id, []):
+            seq = s.get("sg_sequence")
+            if seq and isinstance(seq, dict) and seq.get("id") not in unique_seqs:
+                unique_seqs[seq["id"]] = {
+                    "type": "Sequence",
+                    "id": seq["id"],
+                    "code": seq.get("name", f"SEQ{seq['id']}"),
+                    "sg_status_list": "ip",
+                    "description": None,
+                }
+        return sorted(unique_seqs.values(), key=lambda x: (x.get("code") or ""))
+
     # ── Shots ────────────────────────────────────────────────────
 
     def get_shots(self, project_id: int, sequence: Optional[str] = None) -> List[Dict[str, Any]]:

@@ -155,6 +155,8 @@ class Transfer(Base):
     production_path: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
 
     shotgrid_project_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    shotgrid_sequence_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    shotgrid_sequence_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     shotgrid_entity_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     shotgrid_entity_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     shotgrid_entity_name: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
@@ -226,6 +228,7 @@ class TransferFile(Base):
     checksum_verified: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
     virus_scan_status: Mapped[str] = mapped_column(String(20), default="pending", nullable=False)
     virus_scan_detail: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    file_category: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     uploaded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
     )

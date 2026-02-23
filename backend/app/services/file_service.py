@@ -12,6 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.config import ALLOWED_EXTENSIONS, get_file_category
 from app.models.transfer import Transfer, TransferFile, TransferStatus
 from app.models.user import User
 
@@ -76,6 +77,15 @@ class FileService:
                 detail=f"Cannot upload files when transfer status is '{transfer.status.value}'",
             )
 
+        _, ext = os.path.splitext(file.filename or "")
+        ext = ext.lower()
+        if ext not in ALLOWED_EXTENSIONS:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"File format '{ext}' is not allowed. Allowed: {', '.join(sorted(ALLOWED_EXTENSIONS))}",
+            )
+        file_category = get_file_category(ext)
+
         staging_dir = self._staging_dir_for(transfer.reference)
         filename = file.filename or "unnamed_file"
         safe_filename = filename.replace("/", "_").replace("\\", "_")
@@ -104,6 +114,7 @@ class FileService:
             original_path=str(dest_path),
             size_bytes=size_bytes,
             checksum_sha256=checksum,
+            file_category=file_category,
         )
         db.add(tf)
 

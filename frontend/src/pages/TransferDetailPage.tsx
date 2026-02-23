@@ -233,7 +233,7 @@ export default function TransferDetailPage() {
       {/* Files */}
       <div className="mt-6">
         <SectionCard title={`Files (${transfer.total_files})`} icon={FileText}>
-          <TransferFiles files={transfer.files ?? []} />
+          <TransferFiles transferId={transfer.id} files={transfer.files ?? []} />
         </SectionCard>
       </div>
 

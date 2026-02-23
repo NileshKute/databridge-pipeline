@@ -89,6 +89,8 @@ class TransferService:
             notes=data.notes,
             artist_id=user.id,
             shotgrid_project_id=data.shotgrid_project_id,
+            shotgrid_sequence_id=data.shotgrid_sequence_id,
+            shotgrid_sequence_name=data.shotgrid_sequence_name,
             shotgrid_entity_type=data.shotgrid_entity_type,
             shotgrid_entity_id=data.shotgrid_entity_id,
             status=TransferStatus.UPLOADED,
@@ -147,29 +149,45 @@ class TransferService:
         return transfer
 
     def _build_visibility_filter(self, user: User):
-        role = user.role
-        if role == UserRole.ADMIN:
+        role = user.role.value if hasattr(user.role, "value") else user.role
+        if role == "admin":
             return None
-        if role == UserRole.ARTIST:
-            return Transfer.artist_id == user.id
-        if role == UserRole.TEAM_LEAD:
+        if role in ("supervisor", "line_producer"):
+            return None
+        if role == "team_lead":
             return or_(
-                Transfer.status == TransferStatus.PENDING_TEAM_LEAD,
                 Transfer.artist_id == user.id,
-            )
-        if role == UserRole.SUPERVISOR:
-            return or_(
-                Transfer.status == TransferStatus.PENDING_SUPERVISOR,
                 Transfer.status != TransferStatus.UPLOADED,
             )
-        if role == UserRole.LINE_PRODUCER:
+        if role == "data_team":
             return or_(
-                Transfer.status == TransferStatus.PENDING_LINE_PRODUCER,
-                Transfer.status != TransferStatus.UPLOADED,
+                Transfer.artist_id == user.id,
+                Transfer.status.in_(
+                    [
+                        TransferStatus.APPROVED,
+                        TransferStatus.SCANNING,
+                        TransferStatus.SCAN_PASSED,
+                        TransferStatus.SCAN_FAILED,
+                        TransferStatus.COPYING,
+                        TransferStatus.READY_FOR_TRANSFER,
+                        TransferStatus.TRANSFERRING,
+                        TransferStatus.VERIFYING,
+                        TransferStatus.TRANSFERRED,
+                    ]
+                ),
             )
-        visible = _ROLE_VISIBLE_STATUSES.get(role)
-        if visible:
-            return Transfer.status.in_(visible)
+        if role == "it_team":
+            return or_(
+                Transfer.artist_id == user.id,
+                Transfer.status.in_(
+                    [
+                        TransferStatus.READY_FOR_TRANSFER,
+                        TransferStatus.TRANSFERRING,
+                        TransferStatus.VERIFYING,
+                        TransferStatus.TRANSFERRED,
+                    ]
+                ),
+            )
         return Transfer.artist_id == user.id
 
     async def list_transfers(

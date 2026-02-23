@@ -60,6 +60,16 @@ class ShotGridClient:
             ["name", "sg_status", "sg_description"],
         )
 
+    def get_sequences(self, project_id: int) -> List[Dict[str, Any]]:
+        result = self._safe_call(
+            self._sg.find,
+            "Sequence",
+            [["project", "is", {"type": "Project", "id": project_id}]],
+            ["code", "sg_status_list", "description"],
+            order=[{"field_name": "code", "direction": "asc"}],
+        )
+        return result or []
+
     # ── Shots ────────────────────────────────────────────────────
 
     def get_shots(self, project_id: int, sequence: Optional[str] = None) -> List[Dict[str, Any]]:

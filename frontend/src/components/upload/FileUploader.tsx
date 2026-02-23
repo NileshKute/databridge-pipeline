@@ -1,7 +1,23 @@
 import { useCallback, useRef, useState, type DragEvent } from "react";
 import { Upload, X, FileIcon } from "lucide-react";
 import { clsx } from "clsx";
+import toast from "react-hot-toast";
 import { formatFileSize } from "@/utils/formatters";
+
+const ALLOWED_EXTENSIONS = [
+  ".jpg", ".jpeg", ".png", ".exr", ".tif", ".tiff", ".dpx", ".hdr", ".psd", ".tga",
+  ".mov", ".mp4", ".avi", ".mxf", ".mkv",
+  ".abc", ".fbx", ".obj", ".usd", ".usda", ".usdc", ".ma", ".mb",
+];
+
+function validateFile(file: File): string | null {
+  const parts = file.name.split(".");
+  const ext = parts.length > 1 ? "." + (parts.pop() ?? "").toLowerCase() : "";
+  if (!ALLOWED_EXTENSIONS.includes(ext)) {
+    return `"${file.name}" — format ${ext || "(none)"} is not allowed. Only VFX formats (images, video, 3D) are accepted.`;
+  }
+  return null;
+}
 
 interface Props {
   files: File[];
@@ -16,8 +32,19 @@ export default function FileUploader({ files, onChange }: Props) {
     (incoming: FileList | File[]) => {
       const arr = Array.from(incoming);
       const existing = new Set(files.map((f) => `${f.name}::${f.size}`));
-      const unique = arr.filter((f) => !existing.has(`${f.name}::${f.size}`));
-      if (unique.length > 0) onChange([...files, ...unique]);
+      const valid: File[] = [];
+      const errors: string[] = [];
+      arr.forEach((file) => {
+        if (existing.has(`${file.name}::${file.size}`)) return;
+        const err = validateFile(file);
+        if (err) errors.push(err);
+        else {
+          valid.push(file);
+          existing.add(`${file.name}::${file.size}`);
+        }
+      });
+      if (errors.length > 0) toast.error(errors.slice(0, 3).join("\n") + (errors.length > 3 ? ` (+${errors.length - 3} more)` : ""));
+      if (valid.length > 0) onChange([...files, ...valid]);
     },
     [files, onChange],
   );
@@ -74,9 +101,11 @@ export default function FileUploader({ files, onChange }: Props) {
         />
         <p className="text-sm text-text-secondary">
           <span className="font-medium text-primary-400">Click to browse</span>{" "}
-          or drag & drop files here
+          or drag & drop VFX files here
         </p>
-        <p className="text-xs text-text-muted mt-1">All file types accepted</p>
+        <p className="text-xs text-text-muted mt-1">
+          Images: JPG, PNG, EXR, TIFF, DPX, HDR, PSD, TGA · Video: MOV, MP4, AVI, MXF, MKV · 3D: ABC, FBX, OBJ, USD, MA, MB
+        </p>
         <input
           ref={inputRef}
           type="file"

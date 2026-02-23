@@ -73,6 +73,7 @@ export interface TransferFile {
   checksum_sha256: string | null;
   virus_scan_status: string;
   uploaded_at: string;
+  file_category?: string | null; // image, video, 3d_scene
 }
 
 export interface ApprovalChainItem {

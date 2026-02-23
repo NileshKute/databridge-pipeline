@@ -15,7 +15,9 @@ class TransferCreate(BaseModel):
     category: Optional[TransferCategory] = None
     priority: TransferPriority = TransferPriority.NORMAL
     notes: Optional[str] = None
-    shotgrid_project_id: Optional[int] = None
+    shotgrid_project_id: int = Field(..., description="ShotGrid Project (required)")
+    shotgrid_sequence_id: Optional[int] = None
+    shotgrid_sequence_name: Optional[str] = None
     shotgrid_entity_type: Optional[str] = None
     shotgrid_entity_id: Optional[int] = None
 
@@ -36,6 +38,7 @@ class TransferFileResponse(BaseModel):
     checksum_sha256: Optional[str] = None
     virus_scan_status: str
     uploaded_at: datetime
+    file_category: Optional[str] = None  # image, video, 3d_scene
 
 
 class ApprovalChainItem(BaseModel):

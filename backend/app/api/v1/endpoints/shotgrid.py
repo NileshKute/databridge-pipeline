@@ -28,6 +28,15 @@ async def list_projects(
     return {"projects": projects, "total": len(projects)}
 
 
+@router.get("/projects/{project_id}/sequences")
+async def list_sequences(
+    project_id: int,
+    _: Annotated[User, Depends(get_current_user)],
+):
+    sequences = await shotgrid_service.get_sequences(project_id)
+    return {"sequences": sequences, "total": len(sequences)}
+
+
 @router.get("/projects/{project_id}/shots")
 async def list_shots(
     project_id: int,

@@ -25,6 +25,9 @@ class ShotGridService:
     async def get_projects(self) -> List[Dict[str, Any]]:
         return self._client.get_projects(active_only=True)
 
+    async def get_sequences(self, project_id: int) -> List[Dict[str, Any]]:
+        return self._client.get_sequences(project_id)
+
     async def get_shots(
         self,
         project_id: int,

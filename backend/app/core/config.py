@@ -113,6 +113,24 @@ class Settings(BaseSettings):
     # Transfer
     TRANSFER_METHOD: str = "rsync"
 
+    # Allowed VFX file formats (extension -> category for preview)
+    ALLOWED_FILE_FORMATS: Dict[str, List[str]] = {
+        "image": [".jpg", ".jpeg", ".png", ".exr", ".tif", ".tiff", ".dpx", ".hdr", ".psd", ".tga"],
+        "video": [".mov", ".mp4", ".avi", ".mxf", ".mkv"],
+        "3d_scene": [".abc", ".fbx", ".obj", ".usd", ".usda", ".usdc", ".ma", ".mb"],
+    }
+
+    # Role hierarchy (higher number = higher authority)
+    ROLE_HIERARCHY: Dict[str, int] = {
+        "artist": 1,
+        "team_lead": 2,
+        "supervisor": 3,
+        "line_producer": 4,
+        "data_team": 5,
+        "it_team": 6,
+        "admin": 7,
+    }
+
     # SMTP
     SMTP_HOST: str = "smtp.redchillies.com"
     SMTP_PORT: int = 587
@@ -133,5 +151,27 @@ class Settings(BaseSettings):
     def database_url_sync(self) -> str:
         return self.DATABASE_URL.replace("+asyncpg", "+psycopg2")
 
+    @property
+    def all_allowed_extensions(self) -> List[str]:
+        exts: List[str] = []
+        for fmt_list in self.ALLOWED_FILE_FORMATS.values():
+            exts.extend(fmt_list)
+        return exts
+
+
+def get_file_category(extension: str) -> str:
+    """Return 'image', 'video', '3d_scene', or 'unknown'."""
+    ext = (extension or "").lower().strip()
+    if not ext.startswith("."):
+        ext = f".{ext}"
+    if ext in [".jpg", ".jpeg", ".png", ".exr", ".tif", ".tiff", ".dpx", ".hdr", ".psd", ".tga"]:
+        return "image"
+    if ext in [".mov", ".mp4", ".avi", ".mxf", ".mkv"]:
+        return "video"
+    if ext in [".abc", ".fbx", ".obj", ".usd", ".usda", ".usdc", ".ma", ".mb"]:
+        return "3d_scene"
+    return "unknown"
+
 
 settings = Settings()
+ALLOWED_EXTENSIONS: List[str] = settings.all_allowed_extensions

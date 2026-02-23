@@ -2,12 +2,16 @@ from __future__ import annotations
 
 from typing import Annotated, List, Optional
 
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi.responses import FileResponse
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
-from app.models.transfer import TransferCategory, TransferStatus
+from app.models.transfer import Transfer, TransferCategory, TransferFile, TransferStatus
 from app.models.user import User
 from app.schemas.transfer import (
     ApprovalChainItem,
@@ -225,3 +229,69 @@ async def delete_file(
 ):
     await file_service.delete_file(file_id, current_user, db)
     return {"message": "File deleted"}
+
+
+# ── File Preview & Thumbnail ──────────────────────────────────────
+
+_CONTENT_TYPES = {
+    ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
+    ".tif": "image/tiff", ".tiff": "image/tiff", ".tga": "image/x-tga",
+    ".exr": "image/x-exr", ".dpx": "image/x-dpx", ".hdr": "image/vnd.radiance",
+    ".psd": "image/vnd.adobe.photoshop",
+    ".mov": "video/quicktime", ".mp4": "video/mp4", ".avi": "video/x-msvideo",
+    ".mxf": "application/mxf", ".mkv": "video/x-matroska",
+}
+
+
+@router.get("/{transfer_id}/files/{file_id}/preview")
+async def preview_file(
+    transfer_id: int,
+    file_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    """Serve file content for preview in browser."""
+    await transfer_service.get_transfer(transfer_id, db, current_user)
+    result = await db.execute(
+        select(TransferFile).where(
+            TransferFile.id == file_id,
+            TransferFile.transfer_id == transfer_id,
+        )
+    )
+    tf = result.scalar_one_or_none()
+    if not tf:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+    path = Path(tf.original_path)
+    if not path.exists():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found on disk")
+    media_type = _CONTENT_TYPES.get(path.suffix.lower(), "application/octet-stream")
+    return FileResponse(str(path), media_type=media_type, filename=tf.filename)
+
+
+@router.get("/{transfer_id}/files/{file_id}/thumbnail")
+async def get_thumbnail(
+    transfer_id: int,
+    file_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    """Return thumbnail for preview; for images returns the image, for video returns 404 (use preview)."""
+    await transfer_service.get_transfer(transfer_id, db, current_user)
+    result = await db.execute(
+        select(TransferFile).where(
+            TransferFile.id == file_id,
+            TransferFile.transfer_id == transfer_id,
+        )
+    )
+    tf = result.scalar_one_or_none()
+    if not tf:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+    path = Path(tf.original_path)
+    if not path.exists():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found on disk")
+    ext = path.suffix.lower()
+    image_exts = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".tga", ".exr", ".dpx", ".hdr", ".psd"}
+    if ext in image_exts:
+        media_type = _CONTENT_TYPES.get(ext, "image/jpeg")
+        return FileResponse(str(path), media_type=media_type, filename=tf.filename)
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No thumbnail for this file type")

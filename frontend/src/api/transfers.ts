@@ -1,12 +1,14 @@
 import apiClient from "./client";
 import type { Transfer, TransferListResponse, TransferStats } from "@/types";
 
-interface TransferCreatePayload {
+export interface TransferCreatePayload {
   name: string;
   category?: string;
   priority?: string;
   notes?: string;
-  shotgrid_project_id?: number;
+  shotgrid_project_id: number;
+  shotgrid_sequence_id?: number;
+  shotgrid_sequence_name?: string;
   shotgrid_entity_type?: string;
   shotgrid_entity_id?: number;
 }

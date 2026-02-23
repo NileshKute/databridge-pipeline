@@ -23,12 +23,20 @@ export default function UploadPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [sg, setSg] = useState<ShotGridSelection>({
     projectId: null,
-    entityType: "Shot",
-    entityId: null,
-    entityName: null,
+    projectName: null,
+    sequenceId: null,
+    sequenceCode: null,
+    shotId: null,
+    shotCode: null,
+    taskId: null,
+    taskName: null,
   });
 
-  const canSubmit = name.trim().length > 0 && files.length > 0 && !submitting;
+  const canSubmit =
+    name.trim().length > 0 &&
+    files.length > 0 &&
+    sg.projectId != null &&
+    !submitting;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -41,19 +49,21 @@ export default function UploadPage() {
         category: category || undefined,
         priority,
         notes: notes.trim() || undefined,
-        shotgrid_project_id: sg.projectId ?? undefined,
-        shotgrid_entity_type: sg.entityId ? sg.entityType : undefined,
-        shotgrid_entity_id: sg.entityId ?? undefined,
+        shotgrid_project_id: sg.projectId!,
+        shotgrid_sequence_id: sg.sequenceId ?? undefined,
+        shotgrid_sequence_name: sg.sequenceCode ?? undefined,
+        shotgrid_entity_type: sg.shotId ? "Shot" : undefined,
+        shotgrid_entity_id: sg.shotId ?? undefined,
       });
 
       await transfersApi.uploadFiles(transfer.id, files);
 
-      if (sg.entityId && sg.projectId) {
+      if (sg.shotId && sg.projectId) {
         try {
           await apiClient.post("/shotgrid/link", {
             transfer_id: transfer.id,
-            entity_type: sg.entityType,
-            entity_id: sg.entityId,
+            entity_type: "Shot",
+            entity_id: sg.shotId,
           });
         } catch {
           // SG linking is non-critical

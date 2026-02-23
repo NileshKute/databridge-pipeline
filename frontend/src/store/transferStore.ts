@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { transfersApi } from "@/api/transfers";
+import { transfersApi, type TransferCreatePayload } from "@/api/transfers";
 import type { Transfer, TransferStats } from "@/types";
 
 interface Pagination {
@@ -26,15 +26,7 @@ interface TransferState {
   }) => Promise<void>;
   fetchTransfer: (id: number) => Promise<void>;
   fetchStats: () => Promise<void>;
-  createTransfer: (data: {
-    name: string;
-    category?: string;
-    priority?: string;
-    notes?: string;
-    shotgrid_project_id?: number;
-    shotgrid_entity_type?: string;
-    shotgrid_entity_id?: number;
-  }) => Promise<Transfer>;
+  createTransfer: (data: TransferCreatePayload) => Promise<Transfer>;
 }
 
 export const useTransferStore = create<TransferState>((set, get) => ({
