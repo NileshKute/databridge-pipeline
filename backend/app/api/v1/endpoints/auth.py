@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.dependencies import bearer_scheme, blacklist_token, get_current_user
 from app.core.security import decode_token
@@ -15,6 +16,57 @@ from app.schemas.user import TokenResponse, UserLogin, UserResponse
 from app.services.auth_service import auth_service
 
 router = APIRouter()
+
+
+@router.get("/ldap-test")
+async def test_ldap():
+    """Test LDAP connectivity — only available in debug mode."""
+    if not settings.DEBUG:
+        raise HTTPException(status_code=404, detail="Not found")
+    from ldap3 import ALL, Connection, Server
+    result = {
+        "ldap_server": settings.LDAP_SERVER,
+        "ldap_bind_dn": settings.LDAP_BIND_DN,
+        "ldap_base_dn": settings.LDAP_BASE_DN,
+        "ldap_user_dn": settings.LDAP_USER_DN,
+        "ldap_use_ssl": settings.LDAP_USE_SSL,
+        "connection": "not tested",
+        "bind": "not tested",
+        "search": "not tested",
+    }
+    try:
+        server = Server(settings.LDAP_SERVER, use_ssl=settings.LDAP_USE_SSL, get_info=ALL)
+        result["connection"] = "success"
+    except Exception as e:
+        result["connection"] = f"FAILED: {str(e)}"
+        return result
+    try:
+        conn = Connection(
+            server,
+            user=settings.LDAP_BIND_DN,
+            password=settings.LDAP_BIND_PASSWORD,
+            auto_bind=True,
+        )
+        result["bind"] = "success"
+    except Exception as e:
+        result["bind"] = f"FAILED: {str(e)}"
+        return result
+    try:
+        conn.search(
+            search_base=settings.LDAP_USER_DN or settings.LDAP_BASE_DN,
+            search_filter="(objectClass=person)",
+            attributes=["cn", "sAMAccountName", "mail", "department"],
+            size_limit=3,
+        )
+        result["search"] = f"success — found {len(conn.entries)} users"
+        result["sample_users"] = [str(e.entry_dn) for e in conn.entries[:3]]
+    except Exception as e:
+        result["search"] = f"FAILED: {str(e)}"
+    try:
+        conn.unbind()
+    except Exception:
+        pass
+    return result
 
 
 class RefreshRequest(BaseModel):

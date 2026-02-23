@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Type, TypeVar
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import TypeDecorator
 
 from app.core.database import Base
 
@@ -13,7 +14,42 @@ if TYPE_CHECKING:
     from app.models.transfer import Transfer
     from app.models.user import User
 
-from app.models.user import UserRole
+from app.models.user import UserRole, _UserRoleType
+
+_E = TypeVar("_E", bound=enum.Enum)
+
+
+def _enum_result_value(value, enum_cls: Type[_E]):
+    if value is None:
+        return None
+    try:
+        return enum_cls(value)
+    except ValueError:
+        pass
+    try:
+        return enum_cls[value]
+    except KeyError:
+        pass
+    val_str = str(value).lower()
+    for member in enum_cls:
+        if member.value.lower() == val_str or member.name.lower() == val_str:
+            return member
+    raise ValueError(f"Invalid value for {enum_cls.__name__}: {value!r}")
+
+
+class _ApprovalStatusType(TypeDecorator):
+    impl = String(50)
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        if isinstance(value, ApprovalStatus):
+            return value.value
+        return str(value)
+
+    def process_result_value(self, value, dialect):
+        return _enum_result_value(value, ApprovalStatus)
 
 
 class ApprovalStatus(str, enum.Enum):
@@ -34,10 +70,10 @@ class Approval(Base):
         ForeignKey("users.id"), nullable=True
     )
     required_role: Mapped[UserRole] = mapped_column(
-        Enum(UserRole, values_callable=lambda e: [x.value for x in e]), nullable=False,
+        _UserRoleType(), nullable=False,
     )
     status: Mapped[ApprovalStatus] = mapped_column(
-        Enum(ApprovalStatus, values_callable=lambda e: [x.value for x in e]),
+        _ApprovalStatusType(),
         default=ApprovalStatus.PENDING, nullable=False,
     )
     comment: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

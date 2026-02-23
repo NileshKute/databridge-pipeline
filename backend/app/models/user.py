@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import Boolean, DateTime, Enum, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import TypeDecorator
 
 from app.core.database import Base
 
@@ -26,6 +27,34 @@ class UserRole(str, enum.Enum):
     ADMIN = "admin"
 
 
+class _UserRoleType(TypeDecorator):
+    """Stores UserRole by value; accepts both enum name (ADMIN) and value (admin) when loading from DB."""
+    impl = String(50)
+    cache_ok = True
+
+    def __init__(self):
+        super().__init__(length=50)
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        if isinstance(value, UserRole):
+            return value.value
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return None
+        try:
+            return UserRole(value)
+        except ValueError:
+            pass
+        try:
+            return getattr(UserRole, str(value))
+        except AttributeError:
+            raise ValueError(f"Invalid role value from DB: {value!r}") from None
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -34,7 +63,7 @@ class User(Base):
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     role: Mapped[UserRole] = mapped_column(
-        Enum(UserRole, values_callable=lambda e: [x.value for x in e]),
+        _UserRoleType(),
         default=UserRole.ARTIST, nullable=False,
     )
     department: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)

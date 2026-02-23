@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Type, TypeVar
 
 from sqlalchemy import (
     BigInteger,
     Boolean,
     DateTime,
-    Enum,
     ForeignKey,
     Integer,
     String,
@@ -16,6 +15,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import TypeDecorator
 
 from app.core.database import Base
 
@@ -23,6 +23,72 @@ if TYPE_CHECKING:
     from app.models.approval import Approval
     from app.models.history import TransferHistory
     from app.models.user import User
+
+_E = TypeVar("_E", bound=enum.Enum)
+
+
+def _enum_result_value(value: Optional[str], enum_cls: Type[_E]) -> Optional[_E]:
+    """Try value, then name, then case-insensitive match."""
+    if value is None:
+        return None
+    try:
+        return enum_cls(value)
+    except ValueError:
+        pass
+    try:
+        return enum_cls[value]
+    except KeyError:
+        pass
+    val_str = str(value).lower()
+    for member in enum_cls:
+        if member.value.lower() == val_str or member.name.lower() == val_str:
+            return member
+    raise ValueError(f"Invalid value for {enum_cls.__name__}: {value!r}")
+
+
+class _TransferStatusType(TypeDecorator):
+    impl = String(50)
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        if isinstance(value, TransferStatus):
+            return value.value
+        return str(value)
+
+    def process_result_value(self, value, dialect):
+        return _enum_result_value(value, TransferStatus)
+
+
+class _TransferPriorityType(TypeDecorator):
+    impl = String(50)
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        if isinstance(value, TransferPriority):
+            return value.value
+        return str(value)
+
+    def process_result_value(self, value, dialect):
+        return _enum_result_value(value, TransferPriority)
+
+
+class _TransferCategoryType(TypeDecorator):
+    impl = String(50)
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        if isinstance(value, TransferCategory):
+            return value.value
+        return str(value)
+
+    def process_result_value(self, value, dialect):
+        return _enum_result_value(value, TransferCategory)
 
 
 class TransferStatus(str, enum.Enum):
@@ -71,14 +137,14 @@ class Transfer(Base):
     name: Mapped[str] = mapped_column(String(300), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     category: Mapped[Optional[TransferCategory]] = mapped_column(
-        Enum(TransferCategory, values_callable=lambda e: [x.value for x in e]), nullable=True,
+        _TransferCategoryType(), nullable=True,
     )
     status: Mapped[TransferStatus] = mapped_column(
-        Enum(TransferStatus, values_callable=lambda e: [x.value for x in e]),
+        _TransferStatusType(),
         default=TransferStatus.UPLOADED, nullable=False, index=True,
     )
     priority: Mapped[TransferPriority] = mapped_column(
-        Enum(TransferPriority, values_callable=lambda e: [x.value for x in e]),
+        _TransferPriorityType(),
         default=TransferPriority.NORMAL, nullable=False,
     )
     artist_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)

@@ -2,15 +2,51 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Type, TypeVar
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import TypeDecorator
 
 from app.core.database import Base
 
 if TYPE_CHECKING:
     from app.models.user import User
+
+_E = TypeVar("_E", bound=enum.Enum)
+
+
+def _enum_result_value(value, enum_cls: Type[_E]):
+    if value is None:
+        return None
+    try:
+        return enum_cls(value)
+    except ValueError:
+        pass
+    try:
+        return enum_cls[value]
+    except KeyError:
+        pass
+    val_str = str(value).lower()
+    for member in enum_cls:
+        if member.value.lower() == val_str or member.name.lower() == val_str:
+            return member
+    raise ValueError(f"Invalid value for {enum_cls.__name__}: {value!r}")
+
+
+class _NotificationTypeType(TypeDecorator):
+    impl = String(50)
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        if isinstance(value, NotificationType):
+            return value.value
+        return str(value)
+
+    def process_result_value(self, value, dialect):
+        return _enum_result_value(value, NotificationType)
 
 
 class NotificationType(str, enum.Enum):
@@ -36,7 +72,7 @@ class Notification(Base):
         ForeignKey("transfers.id", ondelete="SET NULL"), nullable=True
     )
     type: Mapped[NotificationType] = mapped_column(
-        Enum(NotificationType, values_callable=lambda e: [x.value for x in e]), nullable=False,
+        _NotificationTypeType(), nullable=False,
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
