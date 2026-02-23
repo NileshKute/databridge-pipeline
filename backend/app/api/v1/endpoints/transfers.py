@@ -5,11 +5,11 @@ from typing import Annotated, List, Optional
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.core.database import get_db
-from backend.app.core.dependencies import get_current_user
-from backend.app.models.transfer import TransferCategory, TransferStatus
-from backend.app.models.user import User
-from backend.app.schemas.transfer import (
+from app.core.database import get_db
+from app.core.dependencies import get_current_user
+from app.models.transfer import TransferCategory, TransferStatus
+from app.models.user import User
+from app.schemas.transfer import (
     ApprovalChainItem,
     TransferCreate,
     TransferFileResponse,
@@ -18,8 +18,8 @@ from backend.app.schemas.transfer import (
     TransferStatsResponse,
     TransferUpdate,
 )
-from backend.app.services.file_service import file_service
-from backend.app.services.transfer_service import transfer_service
+from app.services.file_service import file_service
+from app.services.transfer_service import transfer_service
 
 router = APIRouter()
 
@@ -180,7 +180,7 @@ async def upload_files(
     files: List[UploadFile] = File(...),
 ):
     from sqlalchemy import select as sa_select
-    from backend.app.models.transfer import Transfer as TransferModel
+    from app.models.transfer import Transfer as TransferModel
     result = await db.execute(
         sa_select(TransferModel).where(TransferModel.id == transfer_id)
     )

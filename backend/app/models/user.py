@@ -7,13 +7,13 @@ from typing import TYPE_CHECKING, List, Optional
 from sqlalchemy import Boolean, DateTime, Enum, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from backend.app.core.database import Base
+from app.core.database import Base
 
 if TYPE_CHECKING:
-    from backend.app.models.approval import Approval
-    from backend.app.models.history import TransferHistory
-    from backend.app.models.notification import Notification
-    from backend.app.models.transfer import Transfer
+    from app.models.approval import Approval
+    from app.models.history import TransferHistory
+    from app.models.notification import Notification
+    from app.models.transfer import Transfer
 
 
 class UserRole(str, enum.Enum):

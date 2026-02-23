@@ -8,10 +8,10 @@ from email.mime.text import MIMEText
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from backend.app.core.celery_app import celery_app
-from backend.app.core.config import settings
-from backend.app.models.notification import Notification, NotificationType
-from backend.app.models.user import User, UserRole
+from app.core.celery_app import celery_app
+from app.core.config import settings
+from app.models.notification import Notification, NotificationType
+from app.models.user import User, UserRole
 
 logger = logging.getLogger("databridge.tasks.notifications")
 
@@ -19,7 +19,7 @@ sync_engine = create_engine(settings.database_url_sync, pool_pre_ping=True)
 SyncSession = sessionmaker(bind=sync_engine)
 
 
-@celery_app.task(name="backend.app.tasks.notifications.create_notification_task")
+@celery_app.task(name="app.tasks.notifications.create_notification_task")
 def create_notification_task(
     user_id: int,
     transfer_id: int,
@@ -59,7 +59,7 @@ def create_notification_task(
         db.close()
 
 
-@celery_app.task(name="backend.app.tasks.notifications.notify_role_task")
+@celery_app.task(name="app.tasks.notifications.notify_role_task")
 def notify_role_task(
     role: str,
     transfer_id: int,
@@ -103,7 +103,7 @@ def notify_role_task(
         db.close()
 
 
-@celery_app.task(name="backend.app.tasks.notifications.send_email")
+@celery_app.task(name="app.tasks.notifications.send_email")
 def send_email(to_email: str, subject: str, body_html: str) -> dict:
     try:
         msg = MIMEMultipart("alternative")

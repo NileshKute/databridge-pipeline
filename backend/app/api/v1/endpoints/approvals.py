@@ -6,13 +6,13 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.api.v1.endpoints.transfers import _build_transfer_response
-from backend.app.core.database import get_db
-from backend.app.core.dependencies import get_current_user
-from backend.app.models.user import User
-from backend.app.schemas.approval import ApprovalAction, RejectAction
-from backend.app.schemas.transfer import ApprovalChainItem, TransferResponse
-from backend.app.services.approval_service import approval_service
+from app.api.v1.endpoints.transfers import _build_transfer_response
+from app.core.database import get_db
+from app.core.dependencies import get_current_user
+from app.models.user import User
+from app.schemas.approval import ApprovalAction, RejectAction
+from app.schemas.transfer import ApprovalChainItem, TransferResponse
+from app.services.approval_service import approval_service
 
 router = APIRouter()
 

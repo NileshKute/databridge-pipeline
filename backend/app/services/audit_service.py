@@ -6,7 +6,7 @@ from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.models.history import TransferHistory
+from app.models.history import TransferHistory
 
 logger = logging.getLogger("databridge.audit")
 

@@ -6,11 +6,11 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from backend.app.core.celery_app import celery_app
-from backend.app.core.config import settings
-from backend.app.models.notification import Notification, NotificationType
-from backend.app.models.transfer import Transfer, TransferStatus
-from backend.app.models.user import User, UserRole
+from app.core.celery_app import celery_app
+from app.core.config import settings
+from app.models.notification import Notification, NotificationType
+from app.models.transfer import Transfer, TransferStatus
+from app.models.user import User, UserRole
 
 logger = logging.getLogger("databridge.tasks.maintenance")
 
@@ -18,7 +18,7 @@ sync_engine = create_engine(settings.database_url_sync, pool_pre_ping=True)
 SyncSession = sessionmaker(bind=sync_engine)
 
 
-@celery_app.task(name="backend.app.tasks.maintenance.cleanup_stale_transfers")
+@celery_app.task(name="app.tasks.maintenance.cleanup_stale_transfers")
 def cleanup_stale_transfers() -> dict:
     db: Session = SyncSession()
     try:
@@ -70,7 +70,7 @@ def cleanup_stale_transfers() -> dict:
         db.close()
 
 
-@celery_app.task(name="backend.app.tasks.maintenance.sync_shotgrid_users")
+@celery_app.task(name="app.tasks.maintenance.sync_shotgrid_users")
 def sync_shotgrid_users() -> dict:
     if not settings.SHOTGRID_ENABLED:
         logger.info("ShotGrid disabled — skipping user sync")
@@ -78,7 +78,7 @@ def sync_shotgrid_users() -> dict:
 
     db: Session = SyncSession()
     try:
-        from backend.app.integrations.shotgrid import shotgrid_client
+        from app.integrations.shotgrid import shotgrid_client
 
         users = db.query(User).filter(
             User.is_active.is_(True),

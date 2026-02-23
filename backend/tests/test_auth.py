@@ -4,7 +4,7 @@ from __future__ import annotations
 import pytest
 from httpx import AsyncClient
 
-from backend.app.models.user import User
+from app.models.user import User
 
 
 @pytest.mark.asyncio

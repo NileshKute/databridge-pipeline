@@ -51,7 +51,7 @@ export default function ApprovalsPage() {
         <div className="py-16">
           <LoadingSpinner />
         </div>
-      ) : pendingApprovals.length === 0 ? (
+      ) : (pendingApprovals || []).length === 0 ? (
         <EmptyState
           title="All caught up!"
           description="No transfers are waiting for your approval"
@@ -83,7 +83,7 @@ export default function ApprovalsPage() {
               </tr>
             </thead>
             <tbody>
-              {pendingApprovals.map((t) => (
+              {(pendingApprovals || []).map((t) => (
                 <tr
                   key={t.id}
                   className="border-b border-surface-800 hover:bg-bg-card-hover/50 transition-colors"

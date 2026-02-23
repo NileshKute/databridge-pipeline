@@ -1,15 +1,24 @@
 from __future__ import annotations
 
-import os
+import os as _os
 from pathlib import Path
 from typing import Dict, List
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+_env_path = ".env"
+if not _os.path.exists(_env_path):
+    _parent_env = _os.path.join(
+        _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))),
+        ".env",
+    )
+    if _os.path.exists(_parent_env):
+        _env_path = _parent_env
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=os.getenv("ENV_FILE", ".env"),
+        env_file=_env_path,
         env_file_encoding="utf-8",
         case_sensitive=False,
     )

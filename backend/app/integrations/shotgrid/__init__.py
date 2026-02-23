@@ -1,6 +1,6 @@
-from backend.app.core.config import settings
-from backend.app.integrations.shotgrid.sg_client import ShotGridClient, sg_client
-from backend.app.integrations.shotgrid.sg_fallback import MockShotGridClient, mock_sg_client
+from app.core.config import settings
+from app.integrations.shotgrid.sg_client import ShotGridClient, sg_client
+from app.integrations.shotgrid.sg_fallback import MockShotGridClient, mock_sg_client
 
 if settings.SHOTGRID_ENABLED and sg_client is not None:
     shotgrid_client = sg_client

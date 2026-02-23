@@ -1,6 +1,6 @@
 from celery import Celery
 
-from backend.app.core.config import settings
+from app.core.config import settings
 
 celery_app = Celery(
     "databridge",
@@ -21,13 +21,13 @@ celery_app.conf.update(
     task_soft_time_limit=3600,
     task_time_limit=7200,
     task_routes={
-        "backend.app.tasks.scanning.*": {"queue": "scanning"},
-        "backend.app.tasks.transfer.*": {"queue": "transfer"},
-        "backend.app.tasks.notifications.*": {"queue": "notifications"},
-        "backend.app.tasks.maintenance.*": {"queue": "default"},
+        "app.tasks.scanning.*": {"queue": "scanning"},
+        "app.tasks.transfer.*": {"queue": "transfer"},
+        "app.tasks.notifications.*": {"queue": "notifications"},
+        "app.tasks.maintenance.*": {"queue": "default"},
     },
 )
 
 celery_app.autodiscover_tasks([
-    "backend.app.tasks",
+    "app.tasks",
 ])

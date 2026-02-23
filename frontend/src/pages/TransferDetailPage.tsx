@@ -217,8 +217,8 @@ export default function TransferDetailPage() {
               <p className="text-sm text-rose-200/80 mt-1">
                 {transfer.rejection_reason}
               </p>
-              {transfer.approval_chain
-                ?.filter((a) => a.status === "rejected")
+              {(transfer.approval_chain || [])
+                .filter((a) => a.status === "rejected")
                 .map((a, i) => (
                   <p key={i} className="text-xs text-rose-300/60 mt-2">
                     By {a.approver_name ?? "Unknown"} ({ROLE_CONFIG[a.role]?.label ?? a.role})
@@ -324,9 +324,10 @@ function InfoRow({
 }
 
 function DetailedApprovalChain({ chain }: { chain: ApprovalChainItem[] }) {
+  const list = chain ?? [];
   return (
     <div className="flex flex-wrap items-start gap-3">
-      {chain.map((item, i) => {
+      {list.map((item, i) => {
         const roleLabel = ROLE_CONFIG[item.role]?.label ?? item.role;
         const isApproved = item.status === "approved";
         const isRejected = item.status === "rejected";
@@ -335,8 +336,8 @@ function DetailedApprovalChain({ chain }: { chain: ApprovalChainItem[] }) {
         const isCurrent =
           isPending &&
           (i === 0 ||
-            chain[i - 1]?.status === "approved" ||
-            chain[i - 1]?.status === "skipped");
+            list[i - 1]?.status === "approved" ||
+            list[i - 1]?.status === "skipped");
 
         return (
           <div key={i} className="flex items-center gap-3">

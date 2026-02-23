@@ -9,12 +9,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from backend.app.models.approval import Approval, ApprovalStatus
-from backend.app.models.history import TransferHistory
-from backend.app.models.notification import Notification, NotificationType
-from backend.app.models.transfer import Transfer, TransferStatus
-from backend.app.models.user import User, UserRole
-from backend.app.schemas.transfer import ApprovalChainItem
+from app.models.approval import Approval, ApprovalStatus
+from app.models.history import TransferHistory
+from app.models.notification import Notification, NotificationType
+from app.models.transfer import Transfer, TransferStatus
+from app.models.user import User, UserRole
+from app.schemas.transfer import ApprovalChainItem
 
 logger = logging.getLogger("databridge.approval_service")
 

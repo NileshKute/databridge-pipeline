@@ -49,10 +49,10 @@ export default function ActivityPage() {
         const { data } = await apiClient.get<ActivityResponse>("/activity/", {
           params,
         });
-        setEntries(data.items);
-        setTotal(data.total);
-        setPage(data.page);
-        setPages(data.pages);
+        setEntries(data?.items ?? []);
+        setTotal(data?.total ?? 0);
+        setPage(data?.page ?? 1);
+        setPages(data?.pages ?? 0);
       } catch {
         setEntries([]);
       } finally {
@@ -99,7 +99,7 @@ export default function ActivityPage() {
         <div className="py-16">
           <LoadingSpinner />
         </div>
-      ) : entries.length === 0 ? (
+      ) : (entries || []).length === 0 ? (
         <EmptyState
           title="No activity"
           description={search ? "No results for your search" : "No activity recorded yet"}
@@ -128,7 +128,7 @@ export default function ActivityPage() {
                 </tr>
               </thead>
               <tbody>
-                {entries.map((entry) => {
+                {(entries || []).map((entry) => {
                   const actionColor =
                     ACTION_COLORS[entry.action] ?? "text-text-secondary";
                   return (

@@ -6,9 +6,9 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.models.history import TransferHistory
-from backend.app.models.transfer import Transfer, TransferStatus
-from backend.app.models.user import User
+from app.models.history import TransferHistory
+from app.models.transfer import Transfer, TransferStatus
+from app.models.user import User
 
 logger = logging.getLogger("databridge.transfer_ops_service")
 
@@ -52,7 +52,7 @@ class TransferOpsService:
         await db.commit()
         await db.refresh(transfer)
 
-        from backend.app.tasks.transfer import execute_transfer
+        from app.tasks.transfer import execute_transfer
         execute_transfer.delay(transfer_id)
 
         logger.info("Transfer %s initiated by %s", transfer.reference, user.username)
@@ -89,7 +89,7 @@ class TransferOpsService:
         await db.commit()
         await db.refresh(transfer)
 
-        from backend.app.tasks.transfer import verify_transfer
+        from app.tasks.transfer import verify_transfer
         verify_transfer.delay(transfer_id)
 
         logger.info("Verification dispatched for %s by %s", transfer.reference, user.username)

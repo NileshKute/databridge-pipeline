@@ -17,12 +17,12 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from backend.app.core.database import Base
+from app.core.database import Base
 
 if TYPE_CHECKING:
-    from backend.app.models.approval import Approval
-    from backend.app.models.history import TransferHistory
-    from backend.app.models.user import User
+    from app.models.approval import Approval
+    from app.models.history import TransferHistory
+    from app.models.user import User
 
 
 class TransferStatus(str, enum.Enum):

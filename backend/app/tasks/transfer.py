@@ -10,12 +10,12 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from backend.app.core.celery_app import celery_app
-from backend.app.core.config import settings
-from backend.app.models.history import TransferHistory
-from backend.app.models.notification import Notification, NotificationType
-from backend.app.models.transfer import Transfer, TransferFile, TransferStatus
-from backend.app.models.user import User, UserRole
+from app.core.celery_app import celery_app
+from app.core.config import settings
+from app.models.history import TransferHistory
+from app.models.notification import Notification, NotificationType
+from app.models.transfer import Transfer, TransferFile, TransferStatus
+from app.models.user import User, UserRole
 
 logger = logging.getLogger("databridge.tasks.transfer")
 
@@ -48,7 +48,7 @@ def _notify_role(db: Session, role: UserRole, transfer: Transfer, ntype: Notific
         ))
 
 
-@celery_app.task(bind=True, name="backend.app.tasks.transfer.prepare_for_transfer")
+@celery_app.task(bind=True, name="app.tasks.transfer.prepare_for_transfer")
 def prepare_for_transfer(self, transfer_id: int) -> dict:
     db: Session = SyncSession()
     try:
@@ -76,7 +76,7 @@ def prepare_for_transfer(self, transfer_id: int) -> dict:
         project_name = "unlinked"
         if transfer.shotgrid_project_id:
             try:
-                from backend.app.integrations.shotgrid import shotgrid_client
+                from app.integrations.shotgrid import shotgrid_client
                 proj = shotgrid_client.get_project(transfer.shotgrid_project_id)
                 if proj and proj.get("name"):
                     project_name = proj["name"].replace(" ", "_").lower()
@@ -121,7 +121,7 @@ def prepare_for_transfer(self, transfer_id: int) -> dict:
         db.close()
 
 
-@celery_app.task(bind=True, name="backend.app.tasks.transfer.execute_transfer")
+@celery_app.task(bind=True, name="app.tasks.transfer.execute_transfer")
 def execute_transfer(self, transfer_id: int) -> dict:
     db: Session = SyncSession()
     try:
@@ -196,7 +196,7 @@ def execute_transfer(self, transfer_id: int) -> dict:
         db.close()
 
 
-@celery_app.task(bind=True, name="backend.app.tasks.transfer.verify_transfer")
+@celery_app.task(bind=True, name="app.tasks.transfer.verify_transfer")
 def verify_transfer(self, transfer_id: int) -> dict:
     db: Session = SyncSession()
     try:
@@ -266,7 +266,7 @@ def verify_transfer(self, transfer_id: int) -> dict:
         db.commit()
 
         try:
-            from backend.app.services.shotgrid_service import shotgrid_service
+            from app.services.shotgrid_service import shotgrid_service
             import asyncio
             loop = asyncio.new_event_loop()
             from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
@@ -298,7 +298,7 @@ def verify_transfer(self, transfer_id: int) -> dict:
             message=success_msg,
         ))
 
-        from backend.app.models.approval import Approval, ApprovalStatus
+        from app.models.approval import Approval, ApprovalStatus
         approvers = db.query(Approval).filter(
             Approval.transfer_id == transfer_id,
             Approval.status == ApprovalStatus.APPROVED,

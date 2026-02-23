@@ -29,7 +29,8 @@ export default function TransferTable({
   const navigate = useNavigate();
   const { canApprove, canProcess } = useRole();
 
-  if (transfers.length === 0) {
+  const list = transfers ?? [];
+  if (list.length === 0) {
     return (
       <EmptyState
         title="No transfers found"
@@ -73,7 +74,7 @@ export default function TransferTable({
           </tr>
         </thead>
         <tbody>
-          {transfers.map((t) => (
+          {list.map((t) => (
             <tr
               key={t.id}
               className="border-b border-surface-800 hover:bg-bg-card-hover/50 cursor-pointer transition-colors"

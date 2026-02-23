@@ -7,7 +7,7 @@ import ldap3
 from ldap3 import ALL, SUBTREE, Connection, Server
 from ldap3.core.exceptions import LDAPException
 
-from backend.app.core.config import settings
+from app.core.config import settings
 
 logger = logging.getLogger("databridge.ldap")
 

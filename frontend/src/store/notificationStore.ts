@@ -26,8 +26,8 @@ export const useNotificationStore = create<NotificationState>((set) => ({
         { params: { per_page: 50 } },
       );
       set({
-        notifications: data.items,
-        unreadCount: data.unread_count,
+        notifications: data?.items ?? [],
+        unreadCount: data?.unread_count ?? 0,
         isLoading: false,
       });
     } catch {
@@ -50,7 +50,7 @@ export const useNotificationStore = create<NotificationState>((set) => ({
     try {
       await apiClient.put(`/notifications/${id}/read`);
       set((state) => ({
-        notifications: state.notifications.map((n) =>
+        notifications: (state.notifications || []).map((n) =>
           n.id === id ? { ...n, is_read: true } : n,
         ),
         unreadCount: Math.max(0, state.unreadCount - 1),
@@ -64,7 +64,7 @@ export const useNotificationStore = create<NotificationState>((set) => ({
     try {
       await apiClient.put("/notifications/read-all");
       set((state) => ({
-        notifications: state.notifications.map((n) => ({ ...n, is_read: true })),
+        notifications: (state.notifications || []).map((n) => ({ ...n, is_read: true })),
         unreadCount: 0,
       }));
     } catch {

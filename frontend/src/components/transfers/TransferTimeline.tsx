@@ -24,7 +24,8 @@ const ACTION_COLORS: Record<string, string> = {
 };
 
 export default function TransferTimeline({ entries }: Props) {
-  if (entries.length === 0) {
+  const list = entries ?? [];
+  if (list.length === 0) {
     return (
       <p className="text-text-muted text-sm py-4">No activity yet.</p>
     );
@@ -34,7 +35,7 @@ export default function TransferTimeline({ entries }: Props) {
     <div className="relative">
       <div className="absolute left-[9px] top-3 bottom-3 w-px bg-surface-700" />
       <div className="space-y-4">
-        {entries.map((entry) => {
+        {list.map((entry) => {
           const dotColor =
             ACTION_COLORS[entry.action] ?? "bg-surface-500";
           return (

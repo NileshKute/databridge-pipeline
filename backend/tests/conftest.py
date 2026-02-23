@@ -15,17 +15,17 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from backend.app.core.database import Base, get_db
-from backend.app.core.security import create_access_token
-from backend.app.main import app
-from backend.app.models.approval import Approval, ApprovalStatus
-from backend.app.models.transfer import (
+from app.core.database import Base, get_db
+from app.core.security import create_access_token
+from app.main import app
+from app.models.approval import Approval, ApprovalStatus
+from app.models.transfer import (
     Transfer,
     TransferCategory,
     TransferPriority,
     TransferStatus,
 )
-from backend.app.models.user import User, UserRole
+from app.models.user import User, UserRole
 
 TEST_DB_URL = "sqlite+aiosqlite:///./test_databridge.db"
 

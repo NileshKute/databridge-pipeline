@@ -7,18 +7,18 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.core.config import settings
-from backend.app.core.security import (
+from app.core.config import settings
+from app.core.security import (
     create_access_token,
     create_refresh_token,
     decode_token,
 )
-from backend.app.integrations.ldap import (
+from app.integrations.ldap import (
     fallback_authenticator,
     ldap_authenticator,
 )
-from backend.app.models.user import User
-from backend.app.schemas.user import TokenResponse, UserResponse
+from app.models.user import User
+from app.schemas.user import TokenResponse, UserResponse
 
 logger = logging.getLogger("databridge.auth_service")
 
@@ -69,7 +69,7 @@ class AuthService:
 
         if settings.SHOTGRID_ENABLED and user.shotgrid_user_id is None:
             try:
-                from backend.app.services.shotgrid_service import shotgrid_service
+                from app.services.shotgrid_service import shotgrid_service
                 sg_user_id = await shotgrid_service.resolve_user(username)
                 if sg_user_id:
                     user.shotgrid_user_id = sg_user_id

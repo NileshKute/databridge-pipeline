@@ -8,10 +8,10 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.models.history import TransferHistory
-from backend.app.models.notification import Notification, NotificationType
-from backend.app.models.transfer import Transfer, TransferFile, TransferStatus
-from backend.app.models.user import User, UserRole
+from app.models.history import TransferHistory
+from app.models.notification import Notification, NotificationType
+from app.models.transfer import Transfer, TransferFile, TransferStatus
+from app.models.user import User, UserRole
 
 logger = logging.getLogger("databridge.scanning_service")
 
@@ -58,7 +58,7 @@ class ScanningService:
         await db.commit()
         await db.refresh(transfer)
 
-        from backend.app.tasks.scanning import virus_scan_transfer, checksum_verify_transfer
+        from app.tasks.scanning import virus_scan_transfer, checksum_verify_transfer
         virus_scan_transfer.delay(transfer_id)
         checksum_verify_transfer.delay(transfer_id)
 
@@ -147,7 +147,7 @@ class ScanningService:
         await db.commit()
         await db.refresh(transfer)
 
-        from backend.app.tasks.transfer import prepare_for_transfer
+        from app.tasks.transfer import prepare_for_transfer
         prepare_for_transfer.delay(transfer_id)
 
         logger.info("Scan PASSED for %s — dispatching prepare_for_transfer", transfer.reference)

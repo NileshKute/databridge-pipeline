@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING, Optional
 from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from backend.app.core.database import Base
+from app.core.database import Base
 
 if TYPE_CHECKING:
-    from backend.app.models.user import User
+    from app.models.user import User
 
 
 class NotificationType(str, enum.Enum):

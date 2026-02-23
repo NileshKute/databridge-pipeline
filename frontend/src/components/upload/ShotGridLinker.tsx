@@ -40,7 +40,7 @@ export default function ShotGridLinker({ value, onChange }: Props) {
     setLoadingProjects(true);
     apiClient
       .get<SGProject[]>("/shotgrid/projects")
-      .then(({ data }) => setProjects(data))
+      .then(({ data }) => setProjects(Array.isArray(data) ? data : []))
       .catch(() => setProjects([]))
       .finally(() => setLoadingProjects(false));
   }, [open, projects.length]);
@@ -57,7 +57,7 @@ export default function ShotGridLinker({ value, onChange }: Props) {
         : `/shotgrid/projects/${value.projectId}/assets`;
     apiClient
       .get<SGEntity[]>(endpoint)
-      .then(({ data }) => setEntities(data))
+      .then(({ data }) => setEntities(Array.isArray(data) ? data : []))
       .catch(() => setEntities([]))
       .finally(() => setLoadingEntities(false));
   }, [value.projectId, value.entityType]);
@@ -118,7 +118,7 @@ export default function ShotGridLinker({ value, onChange }: Props) {
                 className="input-field text-sm"
               >
                 <option value="">Select a project...</option>
-                {projects.map((p) => (
+                {(projects || []).map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
                   </option>
@@ -182,7 +182,7 @@ export default function ShotGridLinker({ value, onChange }: Props) {
                   <option value="">
                     Select a {value.entityType.toLowerCase()}...
                   </option>
-                  {entities.map((e) => (
+                  {(entities || []).map((e) => (
                     <option key={e.id} value={e.id}>
                       {e.code ?? e.name ?? `#${e.id}`}
                     </option>

@@ -56,12 +56,12 @@ export const useTransferStore = create<TransferState>((set, get) => ({
         per_page: filters?.per_page ?? get().pagination.perPage,
       });
       set({
-        transfers: resp.items,
+        transfers: resp?.items ?? [],
         pagination: {
-          page: resp.page,
-          perPage: resp.per_page,
-          total: resp.total,
-          pages: resp.pages,
+          page: resp?.page ?? 1,
+          perPage: resp?.per_page ?? 20,
+          total: resp?.total ?? 0,
+          pages: resp?.pages ?? 0,
         },
         isLoading: false,
       });

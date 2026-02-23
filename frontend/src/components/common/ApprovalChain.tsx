@@ -30,12 +30,13 @@ function isCurrentStage(item: ApprovalChainItem, allItems: ApprovalChainItem[]):
 }
 
 export default function ApprovalChain({ approvals, compact = false }: Props) {
+  const list = approvals ?? [];
   return (
     <div className="flex items-center gap-1">
-      {approvals.map((item, i) => {
+      {list.map((item, i) => {
         const abbrev = ROLE_ABBREV[item.role] ?? item.role.slice(0, 2).toUpperCase();
         const label = ROLE_LABELS[item.role] ?? item.role;
-        const current = isCurrentStage(item, approvals);
+        const current = isCurrentStage(item, list);
 
         return (
           <div key={i} className="flex items-center gap-1">

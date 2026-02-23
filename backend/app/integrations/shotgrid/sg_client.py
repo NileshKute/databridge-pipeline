@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable, Dict, List, Optional
 
-from backend.app.core.config import settings
+from app.core.config import settings
 
 logger = logging.getLogger("databridge.shotgrid")
 

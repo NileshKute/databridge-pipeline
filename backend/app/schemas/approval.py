@@ -5,8 +5,8 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from backend.app.models.approval import ApprovalStatus
-from backend.app.models.user import UserRole
+from app.models.approval import ApprovalStatus
+from app.models.user import UserRole
 
 
 class ApprovalAction(BaseModel):

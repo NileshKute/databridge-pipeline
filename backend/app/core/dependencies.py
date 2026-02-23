@@ -10,10 +10,10 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.core.config import settings
-from backend.app.core.database import get_db
-from backend.app.core.security import decode_token
-from backend.app.models.user import User
+from app.core.config import settings
+from app.core.database import get_db
+from app.core.security import decode_token
+from app.models.user import User
 
 logger = logging.getLogger("databridge.auth")
 bearer_scheme = HTTPBearer()

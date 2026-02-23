@@ -34,7 +34,8 @@ const SCAN_CONFIG: Record<
 };
 
 export default function TransferFiles({ files }: Props) {
-  if (files.length === 0) {
+  const list = files ?? [];
+  if (list.length === 0) {
     return <p className="text-text-muted text-sm py-4">No files uploaded yet.</p>;
   }
 
@@ -61,7 +62,7 @@ export default function TransferFiles({ files }: Props) {
           </tr>
         </thead>
         <tbody>
-          {files.map((f) => {
+          {list.map((f) => {
             const scan =
               SCAN_CONFIG[f.virus_scan_status] ?? SCAN_CONFIG.pending;
             const ScanIcon = scan.icon;

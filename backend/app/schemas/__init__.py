@@ -1,9 +1,9 @@
-from backend.app.schemas.user import (
+from app.schemas.user import (
     UserLogin,
     UserResponse,
     TokenResponse,
 )
-from backend.app.schemas.transfer import (
+from app.schemas.transfer import (
     TransferCreate,
     TransferUpdate,
     TransferFileResponse,
@@ -12,12 +12,12 @@ from backend.app.schemas.transfer import (
     TransferListResponse,
     TransferStatsResponse,
 )
-from backend.app.schemas.approval import (
+from app.schemas.approval import (
     ApprovalAction,
     RejectAction,
     ApprovalResponse,
 )
-from backend.app.schemas.notification import (
+from app.schemas.notification import (
     NotificationResponse,
     NotificationListResponse,
 )

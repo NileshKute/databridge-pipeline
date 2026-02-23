@@ -5,12 +5,12 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.api.v1.endpoints.transfers import _build_transfer_response
-from backend.app.core.database import get_db
-from backend.app.core.dependencies import get_current_user
-from backend.app.models.user import User
-from backend.app.schemas.transfer import TransferResponse
-from backend.app.services.transfer_ops_service import transfer_ops_service
+from app.api.v1.endpoints.transfers import _build_transfer_response
+from app.core.database import get_db
+from app.core.dependencies import get_current_user
+from app.models.user import User
+from app.schemas.transfer import TransferResponse
+from app.services.transfer_ops_service import transfer_ops_service
 
 router = APIRouter()
 

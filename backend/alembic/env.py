@@ -1,18 +1,14 @@
-import os
 import sys
-from pathlib import Path
-
-# Project root is two levels up from this file (alembic/env.py → backend → project root)
-PROJECT_ROOT = str(Path(__file__).resolve().parent.parent.parent)
-sys.path.insert(0, PROJECT_ROOT)
-os.environ.setdefault("ENV_FILE", os.path.join(PROJECT_ROOT, ".env"))
-
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from backend.app.core.config import settings
+from app.core.config import settings
+from app.core.database import Base
+from app.models import *  # noqa: F401,F403 — register all models with Base.metadata
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url_sync.replace("%", "%%"))
@@ -20,7 +16,7 @@ config.set_main_option("sqlalchemy.url", settings.database_url_sync.replace("%",
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = None
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:

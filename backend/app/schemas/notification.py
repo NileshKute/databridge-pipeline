@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from backend.app.models.notification import NotificationType
+from app.models.notification import NotificationType
 
 
 class NotificationResponse(BaseModel):

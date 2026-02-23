@@ -22,7 +22,11 @@ export const useApprovalStore = create<ApprovalState>((set, get) => ({
     set({ isLoading: true });
     try {
       const { data } = await apiClient.get<Transfer[]>("/approvals/pending");
-      set({ pendingApprovals: data, pendingCount: data.length, isLoading: false });
+      set({
+        pendingApprovals: Array.isArray(data) ? data : [],
+        pendingCount: Array.isArray(data) ? data.length : 0,
+        isLoading: false,
+      });
     } catch {
       set({ isLoading: false });
     }

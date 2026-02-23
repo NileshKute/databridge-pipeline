@@ -43,14 +43,14 @@ export default function NotificationsPage() {
         <div className="py-16">
           <LoadingSpinner />
         </div>
-      ) : notifications.length === 0 ? (
+      ) : (notifications || []).length === 0 ? (
         <EmptyState
           title="No notifications"
           description="You're all caught up!"
         />
       ) : (
         <div className="space-y-2 max-w-2xl">
-          {notifications.map((n) => (
+          {(notifications || []).map((n) => (
             <NotificationItem
               key={n.id}
               notification={n}

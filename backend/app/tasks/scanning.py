@@ -9,9 +9,9 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from backend.app.core.celery_app import celery_app
-from backend.app.core.config import settings
-from backend.app.models.transfer import Transfer, TransferFile, TransferStatus
+from app.core.celery_app import celery_app
+from app.core.config import settings
+from app.models.transfer import Transfer, TransferFile, TransferStatus
 
 logger = logging.getLogger("databridge.tasks.scanning")
 
@@ -21,7 +21,7 @@ SyncSession = sessionmaker(bind=sync_engine)
 CHUNK_SIZE = 1024 * 1024
 
 
-@celery_app.task(bind=True, name="backend.app.tasks.scanning.virus_scan_transfer")
+@celery_app.task(bind=True, name="app.tasks.scanning.virus_scan_transfer")
 def virus_scan_transfer(self, transfer_id: int) -> dict:
     db: Session = SyncSession()
     try:
@@ -105,7 +105,7 @@ def virus_scan_transfer(self, transfer_id: int) -> dict:
         db.close()
 
 
-@celery_app.task(bind=True, name="backend.app.tasks.scanning.checksum_verify_transfer")
+@celery_app.task(bind=True, name="app.tasks.scanning.checksum_verify_transfer")
 def checksum_verify_transfer(self, transfer_id: int) -> dict:
     db: Session = SyncSession()
     try:

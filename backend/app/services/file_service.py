@@ -11,9 +11,9 @@ from fastapi import HTTPException, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.core.config import settings
-from backend.app.models.transfer import Transfer, TransferFile, TransferStatus
-from backend.app.models.user import User
+from app.core.config import settings
+from app.models.transfer import Transfer, TransferFile, TransferStatus
+from app.models.user import User
 
 logger = logging.getLogger("databridge.file_service")
 

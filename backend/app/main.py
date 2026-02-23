@@ -9,10 +9,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from backend.app.api.v1.router import api_router
-from backend.app.core.config import settings
-from backend.app.core.database import close_db, init_db
-from backend.app.middleware.request_logging import RequestLoggingMiddleware
+from app.api.v1.router import api_router
+from app.core.config import settings
+from app.core.database import close_db, init_db
+from app.middleware.request_logging import RequestLoggingMiddleware
 
 logger = logging.getLogger("databridge")
 
@@ -48,7 +48,7 @@ app.add_middleware(
 )
 app.add_middleware(RequestLoggingMiddleware)
 
-app.include_router(api_router)
+app.include_router(api_router, prefix="/api/v1")
 
 
 @app.get("/health")
@@ -57,7 +57,7 @@ async def health_check():
 
 
 # --- Serve built React frontend ---
-frontend_dir = Path(settings.STATIC_DIR)
+frontend_dir = (Path(__file__).resolve().parent.parent.parent / "frontend" / "dist").resolve()
 if frontend_dir.exists() and frontend_dir.is_dir():
     assets_dir = frontend_dir / "assets"
     if assets_dir.exists():
@@ -65,6 +65,9 @@ if frontend_dir.exists() and frontend_dir.is_dir():
 
     @app.get("/{full_path:path}")
     async def serve_frontend(full_path: str):
+        if full_path.startswith("api/"):
+            from fastapi.responses import JSONResponse
+            return JSONResponse({"detail": "Not found"}, status_code=404)
         file_path = frontend_dir / full_path
         if file_path.exists() and file_path.is_file():
             return FileResponse(str(file_path))

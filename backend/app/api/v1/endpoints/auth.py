@@ -7,12 +7,12 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.core.database import get_db
-from backend.app.core.dependencies import bearer_scheme, blacklist_token, get_current_user
-from backend.app.core.security import decode_token
-from backend.app.models.user import User
-from backend.app.schemas.user import TokenResponse, UserLogin, UserResponse
-from backend.app.services.auth_service import auth_service
+from app.core.database import get_db
+from app.core.dependencies import bearer_scheme, blacklist_token, get_current_user
+from app.core.security import decode_token
+from app.models.user import User
+from app.schemas.user import TokenResponse, UserLogin, UserResponse
+from app.services.auth_service import auth_service
 
 router = APIRouter()
 

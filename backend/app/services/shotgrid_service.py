@@ -7,9 +7,9 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.core.config import settings
-from backend.app.integrations.shotgrid import shotgrid_client
-from backend.app.models.transfer import Transfer
+from app.core.config import settings
+from app.integrations.shotgrid import shotgrid_client
+from app.models.transfer import Transfer
 
 logger = logging.getLogger("databridge.shotgrid_service")
 
